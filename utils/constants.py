@@ -20,10 +20,17 @@ THIRD_PLAYER_INDEX = 3
 FOURTH_PLAYER_INDEX = 4
 
 #   names of players
-FIRST_PLAYER_NAME = "FIRST_PLAYER"
-SECOND_PLAYER_NAME = "SECOND_PLAYER"
-THIRD_PLAYER_NAME = "THIRD_PLAYER"
-FOURTH_PLAYER_NAME = "FOURTH_PLAYER"
+FIRST_PLAYER_NAME = u'FIRST_PLAYER'
+SECOND_PLAYER_NAME = u'SECOND_PLAYER'
+THIRD_PLAYER_NAME = u'THIRD_PLAYER'
+FOURTH_PLAYER_NAME = u'FOURTH_PLAYER'
+
+MOVES_QUEUE = (
+    (FIRST_PLAYER_INDEX, u'FIRST_PLAYER_NAME'),
+    (SECOND_PLAYER_INDEX, u'SECOND_PLAYER_NAME'),
+    (THIRD_PLAYER_INDEX, u'THIRD_PLAYER_NAME'),
+    (FOURTH_PLAYER_INDEX, u'FOURTH_PLAYER_NAME'),
+)
 
 #   indices of teams
 TEAM_ONE = (
@@ -36,17 +43,17 @@ TEAM_TWO = (
 )
 
 #   Names of teams
-TEAM_ONE_NAME = "team_01"
-TEAM_TWO_NAME = "team_02"
+TEAM_ONE_NAME = u'team_01'
+TEAM_TWO_NAME = u'team_02'
 
 TEAMS = (
     (TEAM_ONE, TEAM_ONE_NAME),
     (TEAM_TWO, TEAM_TWO_NAME),
 )
 
-MATCH_NAME = "match"
+MATCH_NAME = u'match'
 
-GAME_NAME = "game"
+GAME_NAME = u'game'
 
 SEVEN = 7
 SEVEN_WORTH = 0
@@ -75,25 +82,25 @@ TRUMP_PRIORITY_TEN = 98
 TRUMP_PRIORITY_ACE = 99
 
 CARD_NUMBERS = (
-    (SEVEN, SEVEN_WORTH, TRUMP_PRIORITY_SEVEN, "7"),
-    (EIGHT, EIGHT_WORTH, TRUMP_PRIORITY_EIGHT, "8"),
-    (NINE, NINE_WORTH, TRUMP_PRIORITY_NINE, "9"),
-    (TEN, TEN_WORTH, TRUMP_PRIORITY_TEN, "10"),
-    (JACK, JACK_WORTH, TRUMP_PRIORITY_JACK, "jack"),
-    (QUEEN, QUEEN_WORTH, TRUMP_PRIORITY_QUEEN, "queen"),
-    (KING, KING_WORTH, TRUMP_PRIORITY_KING, "king"),
-    (ACE, ACE_WORTH, TRUMP_PRIORITY_ACE, "ace"),
+    (SEVEN, SEVEN_WORTH, TRUMP_PRIORITY_SEVEN, u'7'),
+    (EIGHT, EIGHT_WORTH, TRUMP_PRIORITY_EIGHT, u'8'),
+    (NINE, NINE_WORTH, TRUMP_PRIORITY_NINE, u'9'),
+    (TEN, TEN_WORTH, TRUMP_PRIORITY_TEN, u'10'),
+    (JACK, JACK_WORTH, TRUMP_PRIORITY_JACK, u'jack'),
+    (QUEEN, QUEEN_WORTH, TRUMP_PRIORITY_QUEEN, u'queen'),
+    (KING, KING_WORTH, TRUMP_PRIORITY_KING, u'king'),
+    (ACE, ACE_WORTH, TRUMP_PRIORITY_ACE, u'ace'),
 )
 
 CARD_NAMES = (
-    (SEVEN, "7"),
-    (EIGHT, "8"),
-    (NINE, "9"),
-    (TEN, "10"),
-    (JACK, "jack"),
-    (QUEEN, "queen"),
-    (KING, "king"),
-    (ACE, "ace"),
+    (SEVEN, u'7'),
+    (EIGHT, u'8'),
+    (NINE, u'9'),
+    (TEN, u'10'),
+    (JACK, u'jack'),
+    (QUEEN, u'queen'),
+    (KING, u'king'),
+    (ACE, u'ace'),
 )
 
 #   Values of Trumps
@@ -103,10 +110,10 @@ HEARTS_VALUE = 3
 DIAMONDS_VALUE = 4
 
 #   Names of trumps
-CLUBS_NAME = "clubs"
-SPADES_NAME = "spades"
-HEARTS_NAME = "hearts"
-DIAMONDS_NAME = "diamonds"
+CLUBS_NAME = u'clubs'
+SPADES_NAME = u'spades'
+HEARTS_NAME = u'hearts'
+DIAMONDS_NAME = u'diamonds'
 
 INITIAL_TRUMP = 1
 
@@ -125,12 +132,7 @@ HAND02 = 2
 HAND03 = 3
 HAND04 = 4
 
-MOVES_QUEUE = (
-    (HAND01, u'hand01'),
-    (HAND02, u'hand02'),
-    (HAND03, u'hand03'),
-    (HAND04, u'hand04'),
-)
+
 
 
 

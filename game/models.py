@@ -6,14 +6,15 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
-from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX
+from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
+    MOVES_QUEUE
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
 
 class Deck(models.Model):
     trump = models.PositiveSmallIntegerField(choices=SUITS, default=SUITS[0])
-    next_move = models.PositiveSmallIntegerField(default=INITIAL_PLAYER_INDEX)
+    next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
