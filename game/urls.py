@@ -6,6 +6,6 @@ app_name = "game"
 
 urlpatterns = [
     url(r'^test/$', views.test, name='test'),
-    url(r'^test_visual/$', views.test_visual, name='test_visual'),
+    url(r'^deck/show/$', views.show, name='show'),
     url(r'^deck/create/$', views.create_deck, name='create_deck'),
 ]

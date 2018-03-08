@@ -11,12 +11,11 @@ from utils.constants import SUITS
 
 
 def test(request):
-    Deck.objects.create(trump=4)
     return HttpResponse("<h1>test</h1>")
 
 
 @csrf_exempt
-def test_visual(request):
+def show(request):
     try:
         deck_id = int(request.GET.get("deck_id") or request.POST.get("deck_id"))
         deck = Deck.objects.get(id=deck_id)
@@ -51,7 +50,7 @@ def test_visual(request):
 @http.required_parameters(["trump"])
 @csrf_exempt
 def create_deck(request):
-     
+
     trump = int(request.POST.get("trump") or request.GET.get("trump"))
     if trump not in [suit[0] for suit in SUITS]:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="trump")
@@ -81,20 +80,6 @@ def make_move(request):
     deck.save()
     return {
         "allowed": allowed_hand_list,
-        "deck": deck.json(),
-    }
-
-
-@http.json_response()
-@http.required_parameters(["deck_id"])
-@csrf_exempt
-def show(request):
-    try:
-        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")))
-    except ObjectDoesNotExist:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
-
-    return {
         "deck": deck.json(),
     }
 
