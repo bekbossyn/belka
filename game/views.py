@@ -15,7 +15,7 @@ def test(request):
 
 
 @csrf_exempt
-def show(request):
+def show_visual(request):
     try:
         deck_id = int(request.GET.get("deck_id") or request.POST.get("deck_id"))
         deck = Deck.objects.get(id=deck_id)
@@ -63,25 +63,37 @@ def create_deck(request):
 @http.json_response()
 @http.required_parameters(["deck_id"])
 @csrf_exempt
-def make_move(request):
-    try:
-        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")))
-    except ObjectDoesNotExist:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
-    allowed_hand_list = deck.allowed_hand_list()
-    if len(allowed_hand_list) == 8:
-        # ALL moves can be made
-        move = random.randint(0, len(allowed_hand_list) - 1)
-    else:
-        #   TODO create movement
-        move = 0
-    # allowed_hand_list.remove(allowed_hand_list[move])
-    deck.deactivate(allowed_hand_list[move])
-    deck.save()
+def show(request):
+
+    deck_id = int(request.POST.get("deck_id") or request.GET.get("deck_id"))
+    deck = Deck.objects.get(pk=deck_id)
     return {
-        "allowed": allowed_hand_list,
         "deck": deck.json(),
     }
+
+
+# @http.json_response()
+# @http.required_parameters(["deck_id"])
+# @csrf_exempt
+# def make_move(request):
+#     try:
+#         deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")))
+#     except ObjectDoesNotExist:
+#         return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+#     allowed_hand_list = deck.allowed_hand_list()
+#     if len(allowed_hand_list) == 8:
+#         # ALL moves can be made
+#         move = random.randint(0, len(allowed_hand_list) - 1)
+#     else:
+#         #   TODO create movement
+#         move = 0
+#     # allowed_hand_list.remove(allowed_hand_list[move])
+#     deck.deactivate(allowed_hand_list[move])
+#     deck.save()
+#     return {
+#         "allowed": allowed_hand_list,
+#         "deck": deck.json(),
+#     }
 
 
 
