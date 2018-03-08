@@ -1,5 +1,5 @@
 define({
-  "name": "belka",
+  "name": "Belka",
   "version": "0.0.1",
   "description": "Api",
   "title": "Belka Documentation",
@@ -9,7 +9,7 @@ define({
   "apidoc": "0.3.0",
   "generator": {
     "name": "apidoc",
-    "time": "2018-03-08T18:38:07.761Z",
+    "time": "2018-03-08T18:41:31.776Z",
     "url": "http://apidocjs.com",
     "version": "0.17.6"
   }
