@@ -14,10 +14,12 @@
         {% block content %} {% endblock %}
 
         <div class="container">
+            <center><p>Deck number {{ deck.id }}</p></center>
+            <center><p>Trump <b>{{ deck.get_trump_display }}</b></p></center>
             <div class="row">
-                {% for hand in hand_01 %}
+                {% for card in hand_01.cards.all %}
                     <div class="col-1">
-                        <img src="{{ hand.url }}" width="150" height="200"/>
+                        <img src="{{ card.image_url }}" width="150" height="200"/>
                     </div>
                 {% endfor %}
             </div>
@@ -25,9 +27,9 @@
             <hr/>
 
             <div class="row">
-                {% for hand in hand_02 %}
+                {% for card in hand_02.cards.all %}
                     <div class="col-1">
-                        <img src="{{ hand.url }}" width="150" height="200"/>
+                        <img src="{{ card.image_url }}" width="150" height="200"/>
                     </div>
                 {% endfor %}
             </div>
@@ -35,9 +37,9 @@
             <hr/>
 
             <div class="row">
-                {% for hand in hand_03 %}
+                {% for card in hand_03.cards.all %}
                     <div class="col-1">
-                        <img src="{{ hand.url }}" width="150" height="200"/>
+                        <img src="{{ card.image_url }}" width="150" height="200"/>
                     </div>
                 {% endfor %}
             </div>
@@ -45,9 +47,9 @@
             <hr/>
 
             <div class="row">
-                {% for hand in hand_04 %}
+                {% for card in hand_04.cards.all %}
                     <div class="col-1">
-                        <img src="{{ hand.url }}" width="150" height="200"/>
+                        <img src="{{ card.image_url }}" width="150" height="200"/>
                     </div>
                 {% endfor %}
             </div>
