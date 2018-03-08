@@ -51,7 +51,7 @@ def test_visual(request):
 @http.required_parameters(["trump"])
 @csrf_exempt
 def create_deck(request):
-
+     
     trump = int(request.POST.get("trump") or request.GET.get("trump"))
     if trump not in [suit[0] for suit in SUITS]:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="trump")
