@@ -63,7 +63,7 @@ def create_deck(request):
 @http.json_response()
 @http.required_parameters(["deck_id"])
 @csrf_exempt
-def show(request):
+def show_deck(request):
 
     deck_id = int(request.POST.get("deck_id") or request.GET.get("deck_id"))
     deck = Deck.objects.get(pk=deck_id)
