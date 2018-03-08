@@ -1,9 +1,13 @@
+import random
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from utils import http, codes, messages
 
 from game.models import Deck
+from utils.constants import SUITS
 
 
 def test(request):
@@ -41,6 +45,60 @@ def test_visual(request):
         "hand_04": hand04,
     }
     return render(request, "game/visual.html", context)
+
+
+@http.json_response()
+@http.required_parameters(["trump"])
+@csrf_exempt
+def create_deck(request):
+
+    trump = int(request.POST.get("trump") or request.GET.get("trump"))
+    if trump not in [suit[0] for suit in SUITS]:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="trump")
+
+    deck = Deck.objects.create(trump=trump)
+    return {
+        "deck": deck.json(),
+    }
+
+
+@http.json_response()
+@http.required_parameters(["deck_id"])
+@csrf_exempt
+def make_move(request):
+    try:
+        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")))
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+    allowed_hand_list = deck.allowed_hand_list()
+    if len(allowed_hand_list) == 8:
+        # ALL moves can be made
+        move = random.randint(0, len(allowed_hand_list) - 1)
+    else:
+        #   TODO create movement
+        move = 0
+    # allowed_hand_list.remove(allowed_hand_list[move])
+    deck.deactivate(allowed_hand_list[move])
+    deck.save()
+    return {
+        "allowed": allowed_hand_list,
+        "deck": deck.json(),
+    }
+
+
+@http.json_response()
+@http.required_parameters(["deck_id"])
+@csrf_exempt
+def show(request):
+    try:
+        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")))
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+
+    return {
+        "deck": deck.json(),
+    }
+
 
 
 

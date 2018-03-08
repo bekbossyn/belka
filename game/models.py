@@ -7,6 +7,8 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX
+from utils.image_utils import get_url
+from utils.time_utils import dt_to_timestamp
 
 
 class Deck(models.Model):
@@ -18,6 +20,17 @@ class Deck(models.Model):
 
     def __str__(self):
         return u"deck_pk={0}".format(self.pk)
+
+    def json(self, active=True):
+        return {
+            "deck_id": self.pk,
+            "trump": self.trump,
+            "hands": [hand.json(active=active) for hand in self.hands.filter(active=active)],
+            "next_move": self.next_move,
+            "total_moves": self.total_moves,
+            "active": self.active,
+            "timestamp": dt_to_timestamp(self.timestamp),
+        }
 
 
 @receiver(pre_save, sender=Deck)
@@ -185,6 +198,14 @@ class Hand(models.Model):
     def __str__(self):
         return u"hand_pk={0}".format(self.pk)
 
+    def json(self, active=True):
+        return {
+            "hand_id": self.pk,
+            "cards": [card.json() for card in self.cards.filter(active=active)],
+            "active": self.active,
+            "timestamp": dt_to_timestamp(self.timestamp),
+        }
+
 
 @receiver(pre_save, sender=Hand)
 def hand_initials(sender, instance, **kwargs):
@@ -212,6 +233,18 @@ class Card(models.Model):
 
     def __str__(self):
         return u"card_pk={0}, {1}".format(self.pk, self.name)
+
+    def json(self):
+        return {
+            "card_id": self.pk,
+            "name": self.name,
+            "value": self.value,
+            "worth": self.worth,
+            "image_url": get_url(path=self.image_url),
+            "trump_priority": self.trump_priority,
+            "active": self.active,
+            "timestamp": dt_to_timestamp(self.timestamp),
+        }
 
 
 @receiver(pre_save, sender=Card)
