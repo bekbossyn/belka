@@ -84,14 +84,30 @@ WSGI_APPLICATION = 'belka.wsgi.application'
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
+
+#   local
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'NAME': os.environ.get('DB_NAME', 'test_belka'),
+#         'USER': os.environ.get('DB_USER', 'test_belka_user'),
+#         'PASSWORD': os.environ.get('DB_PASS', 'test_belka_password'),
+#         'HOST': os.environ.get('DB_HOST', 'localhost'),
+#         'PORT': os.environ.get('DB_PORT', 5432),
+#     }
+# }
+
+#   temporary for production
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('DB_NAME', 'test_belka'),
-        'USER': os.environ.get('DB_USER', 'test_belka_user'),
-        'PASSWORD': os.environ.get('DB_PASS', 'test_belka_password'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', 5432),
+        'NAME': 'belka_database',
+        'USER': 'belka_user',
+        'PASSWORD': 'belka_pass',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -133,7 +149,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-
+STATIC_ROOT = "/static"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
