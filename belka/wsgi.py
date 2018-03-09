@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "belka.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "belka.ocean")
 
 application = get_wsgi_application()
