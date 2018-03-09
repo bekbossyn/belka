@@ -247,6 +247,9 @@ class Card(models.Model):
             "timestamp": dt_to_timestamp(self.timestamp),
         }
 
+    class Meta:
+        ordering = ['pk']
+
 
 @receiver(pre_save, sender=Card)
 def card_initials(sender, instance, **kwargs):

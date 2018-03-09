@@ -3,7 +3,8 @@ from functools import wraps
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 
-from utils import codes, messages, string_utils
+from belka import settings
+from . import codes, messages, string_utils, token
 
 
 def json_response():
@@ -58,7 +59,8 @@ def required_parameters(parameters_list):
                     else:
                         list_parameter = parameter
                     value = string_utils.empty_to_none(request.POST.get(parameter) or request.FILES.get(parameter) or
-                                                       request.POST.get(list_parameter) or request.FILES.get(list_parameter))
+                                                       request.POST.get(list_parameter) or request.FILES.get(
+                        list_parameter))
                     if value is None:
                         return code_response(code=codes.BAD_REQUEST,
                                              message=messages.MISSING_REQUIRED_PARAMS,
@@ -69,7 +71,8 @@ def required_parameters(parameters_list):
                         list_parameter = parameter[:-2]
                     else:
                         list_parameter = parameter
-                    value = string_utils.empty_to_none(request.GET.get(list_parameter) or request.POST.get(list_parameter))
+                    value = string_utils.empty_to_none(
+                        request.GET.get(list_parameter) or request.POST.get(list_parameter))
                     if value is None:
                         return code_response(code=codes.BAD_REQUEST,
                                              message=messages.MISSING_REQUIRED_PARAMS, field=list_parameter)
@@ -77,4 +80,52 @@ def required_parameters(parameters_list):
             return func(request, *args, **kwargs)
         return inner
     return decorator
+
+
+def ok_response():
+    return code_response(codes.OK)
+
+
+def extract_token_from_request(request):
+    """
+    Extracts token string from request. First tries to get it from AUTH_TOKEN header,
+    if not found (or empty) tries to get from cookie.
+    :param request:
+    :return: Token string found in header or cookie; null otherwise.
+    """
+    header_names_list = settings.AUTH_TOKEN_HEADER_NAME
+    token_string = None
+    for name in header_names_list:
+        if name in request.META:
+            token_string = string_utils.empty_to_none(request.META[name])
+
+    if token_string is None:
+        token_string = request.COOKIES.get(settings.AUTH_TOKEN_COOKIE_NAME, None)
+
+    return string_utils.empty_to_none(token_string)
+
+
+def requires_token(optional=False):
+    """
+    Decorator to make a view only accept request with valid token.
+    if optional, user will be sent as None when there is no token.
+    """
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            token_string = extract_token_from_request(request)
+            if not optional and token_string is None:
+                return code_response(code=codes.BAD_CREDENTIALS,
+                                     message=messages.MISSING_TOKEN)
+
+            user = token.verify_token(token_string)
+
+            if not optional and user is None:
+                return code_response(code=codes.BAD_CREDENTIALS,
+                                     message=messages.INVALID_TOKEN)
+
+            return func(request, user, *args, **kwargs)
+        return inner
+    return decorator
+
 

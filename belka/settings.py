@@ -25,7 +25,7 @@ SECRET_KEY = '+&y*jj*7=72_69eyeyf_)x&rz)ddjj0a@cmc4^@f%5*ryp*zfy'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     #   my apps
     'game',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -77,10 +78,20 @@ WSGI_APPLICATION = 'belka.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.environ.get('DB_NAME', 'test_belka'),
+        'USER': os.environ.get('DB_USER', 'test_belka_user'),
+        'PASSWORD': os.environ.get('DB_PASS', 'test_belka_password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', 5432),
     }
 }
 
@@ -128,5 +139,18 @@ STATICFILES_DIRS = [
 ]
 
 SITE_URL = 'http://localhost:8000'
+
+AUTH_TOKEN_HEADER_NAME = ["AUTH_TOKEN", "HTTP_AUTH_TOKEN", "Auth-Token"]
+AUTH_TOKEN_COOKIE_NAME = "auth-token"
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = '/media/'
+
+# CUSTOM AUTH SETTINGS
+AUTH_USER_MODEL = "core.MainUser"
+AUTHENTICATION_BACKENDS = ('core.backends.phone_backend.PhoneModelBackend', )
+
+JWT_KEY = 'belka-secret-key1155'
+JWT_ALGORITHM = 'HS256'
 
 
