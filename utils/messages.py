@@ -55,14 +55,12 @@ USER_ALREADY_EXISTS = {
 }
 EMAIL_ALREADY_EXISTS = {
     "ru": "Пользователь с таким email уже существует",
-    #   TODO kazakh language translation
-    "kz": "Пользователь с таким email уже существует",
+    "kz": "Пошта алдын тіркелген",
     "en": "User with such email already exists",
 }
 PHONE_ALREADY_EXISTS = {
     "ru": "Пользователь с таким телефоном уже существует",
-    #   TODO kazakh language translation
-    "kz": "Пользователь с таким телефоном уже существует",
+    "kz": "Телефон нөмірі алдын тіркелген",
     "en": "User with such phone already exists",
 }
 MISSING_TOKEN = {
