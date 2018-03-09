@@ -32,7 +32,7 @@ def sign_in(request):
         user = authenticate(request, phone=phone, password=password)
     if user:
         return {
-            'token': token.create_token(user),
+            'token': token.create_token(user, remove_others=True),
             'user': user.owner_json()
         }
     return http.code_response(code=codes.BAD_REQUEST,
@@ -282,7 +282,7 @@ def social_sign_up(request):
         sign_up_user_complete(user, activation)
         return {
             "user": user.owner_json(),
-            "token": token.create_token(user)
+            "token": token.create_token(user, remove_others=True)
         }
     return http.code_response(code=codes.OK, message=message)
 
@@ -348,7 +348,7 @@ def sign_up_complete(request):
         u, _ = User.objects.get_or_create(phone=activation.phone)
     sign_up_user_complete(user=u, activation=activation)
     return {
-        'token': token.create_token(u),
+        'token': token.create_token(u, remove_others=True),
         'user': u.owner_json()
     }
 
@@ -687,7 +687,7 @@ def social_authenticate(social_type, social_id, email=None, phone=None, full_nam
     if user:
         return {
             'exists': True,
-            'token': token.create_token(user),
+            'token': token.create_token(user, remove_others=True),
             'user': user.owner_json()
         }
     return{

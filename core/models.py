@@ -220,7 +220,7 @@ class TokenLog(models.Model):
     token = models.CharField(max_length=500, blank=False, null=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=False, null=False, related_name='tokens',
                              on_delete=models.CASCADE)
-    deleted = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return "token={0}".format(self.token)

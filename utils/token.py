@@ -13,6 +13,7 @@ User = get_user_model()
 def create_token(user, remove_others=False):
     """
     Creates token string.
+    :param remove_others: will remove all previous tokens of the user
     :param user: User for which token should be created.
     :return: authentication token.
     """
@@ -22,7 +23,7 @@ def create_token(user, remove_others=False):
     }
     token = jwt.encode(info, settings.JWT_KEY, settings.JWT_ALGORITHM).decode('utf-8')
     if remove_others:
-        TokenLog.objects.filter(user=user, deleted=False).update(deleted=True)
+        TokenLog.objects.filter(user=user, active=True).update(active=False)
     TokenLog.objects.create(user=user, token=token)
     return token
 
@@ -30,7 +31,6 @@ def create_token(user, remove_others=False):
 def verify_token(token_string):
     """
     Verifies token string.
-
     :param token_string: Token string to verify.
     :return: User object if token is valid; None is token is invalid.
     """
@@ -38,7 +38,7 @@ def verify_token(token_string):
         result = jwt.decode(token_string, settings.JWT_KEY, settings.JWT_ALGORITHM)
         user_id = result['id']
         user = User.objects.get(id=user_id)
-        user.tokens.get(token=token_string, deleted=False)
+        user.tokens.get(token=token_string, active=True)
         if user.pk != user_id:
             return None
         return user

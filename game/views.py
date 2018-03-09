@@ -47,9 +47,10 @@ def show_visual(request):
 
 
 @http.json_response()
+@http.requires_token()
 @http.required_parameters(["trump"])
 @csrf_exempt
-def create_deck(request):
+def create_deck(request, user):
 
     trump = int(request.POST.get("trump") or request.GET.get("trump"))
     if trump not in [suit[0] for suit in SUITS]:
