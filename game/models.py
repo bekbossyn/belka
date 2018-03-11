@@ -121,7 +121,7 @@ class GameSetting(models.Model):
 
 
 class Deck(models.Model):
-    room = models.ForeignKey(Room, related_name='decks', null=False, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, related_name='decks', null=True, on_delete=models.CASCADE)
     trump = models.PositiveSmallIntegerField(choices=SUITS, default=SUITS[0])
     next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
@@ -144,19 +144,6 @@ class Deck(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
-
-
-@receiver(pre_save, sender=Deck)
-def deck_initials(sender, instance, **kwargs):
-    #   Set initials
-    if instance.pk is None:
-        try:
-            new_pk = Deck.objects.latest('id').pk + 1
-        except ObjectDoesNotExist:
-            new_pk = 1
-
-        #   Set Primary Key
-        instance.pk = new_pk
 
 
 def sort_by_trump(trump, my_list):
@@ -251,32 +238,32 @@ def sort_by_trump(trump, my_list):
 
 @receiver(post_save, sender=Deck)
 def deck_finals(sender, instance, **kwargs):
-    bag = list()
-    for suit in SUITS:
-        for card_number in CARD_NUMBERS:
-            bag.append(card_to_number(instance.trump, suit, card_number))
-    randomized_bag = list()
-    while len(bag):
-        #   a <= n <= b
-        #   random.randint(a,b)
-        random_number = random.randint(0, len(bag) - 1)
-        randomized_bag.append(bag[random_number])
-        bag.remove(bag[random_number])
+    if instance.hands.count() == 0:
+        bag = list()
+        for suit in SUITS:
+            for card_number in CARD_NUMBERS:
+                bag.append(card_to_number(instance.trump, suit, card_number))
+        randomized_bag = list()
+        while len(bag):
+            #   a <= n <= b
+            #   random.randint(a,b)
+            random_number = random.randint(0, len(bag) - 1)
+            randomized_bag.append(bag[random_number])
+            bag.remove(bag[random_number])
 
-    for i in range(4):
-        hand = Hand.objects.create(deck=instance)
-        sorted_bag = sort_by_trump(instance.trump, randomized_bag[(i * 8):((i * 8) + 8)])
-        for j in range(8):
-            # current_card = randomized_bag[i * 8 + j]
-            current_card = sorted_bag[j]
-            name = current_card["name"]
-            value = current_card["value"]
-            worth = current_card["worth"]
-            image_url = current_card["image_url"]
-            trump_priority = current_card["trump_priority"]
-            Card.objects.create(hand=hand, name=name, value=value, worth=worth, image_url=image_url,
-                                trump_priority=trump_priority)
-    pass
+        for i in range(4):
+            hand = Hand.objects.create(deck=instance)
+            sorted_bag = sort_by_trump(instance.trump, randomized_bag[(i * 8):((i * 8) + 8)])
+            for j in range(8):
+                # current_card = randomized_bag[i * 8 + j]
+                current_card = sorted_bag[j]
+                name = current_card["name"]
+                value = current_card["value"]
+                worth = current_card["worth"]
+                image_url = current_card["image_url"]
+                trump_priority = current_card["trump_priority"]
+                Card.objects.create(hand=hand, name=name, value=value, worth=worth, image_url=image_url,
+                                    trump_priority=trump_priority)
 
 
 def card_to_number(trump, suit, card_number):
