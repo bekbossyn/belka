@@ -87,29 +87,29 @@ WSGI_APPLICATION = 'belka.wsgi.application'
 
 #   local
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#         'NAME': os.environ.get('DB_NAME', 'test_belka'),
-#         'USER': os.environ.get('DB_USER', 'test_belka_user'),
-#         'PASSWORD': os.environ.get('DB_PASS', 'test_belka_password'),
-#         'HOST': os.environ.get('DB_HOST', 'localhost'),
-#         'PORT': os.environ.get('DB_PORT', 5432),
-#     }
-# }
-
-#   temporary for production
-#
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'belka_database',
-        'USER': 'belka_user',
-        'PASSWORD': 'belka_pass',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': os.environ.get('DB_NAME', 'test_belka'),
+        'USER': os.environ.get('DB_USER', 'test_belka_user'),
+        'PASSWORD': os.environ.get('DB_PASS', 'test_belka_password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', 5432),
     }
 }
+
+#   temporary for production
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'NAME': 'belka_database',
+#         'USER': 'belka_user',
+#         'PASSWORD': 'belka_pass',
+#         'HOST': 'localhost',
+#         'PORT': '',
+#     }
+# }
 
 
 # Password validation
