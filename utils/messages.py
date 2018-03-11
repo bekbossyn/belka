@@ -1,17 +1,17 @@
 NOT_FOUND = {
     "ru": "Объект не найден",
-    "kz": "Объект не найден",
-    "en": "Объект не найден",
+    "kz": "Объект табылмады",
+    "en": "Object not found",
 }
 MISSING_REQUIRED_PARAMS = {
     "ru": "Системная ошибка. Нехватает параметра",
-    "kz": "Системная ошибка. Нехватает параметра",
-    "en": "Системная ошибка. Нехватает параметра",
+    "kz": "Жүйелік қате. Параметр жетіспейді",
+    "en": "System error. Missing parameter",
 }
 GAME_NOT_FOUND = {
     "ru": "Игра не найдена",
-    "kz": "Игра не найдена",
-    "en": "Игра не найдена",
+    "kz": "Ойын табылмады",
+    "en": "Game not found",
 }
 DECK_NOT_FOUND = {
     "ru": "Колода не найдена",
@@ -20,8 +20,8 @@ DECK_NOT_FOUND = {
 }
 INVALID_PARAMS = {
     "ru": "Неправильные параметры",
-    "kz": "Неправильные параметры",
-    "en": "Неправильные параметры",
+    "kz": "Қате параметрлер",
+    "en": "Invalid params",
 }
 REGISTRATION_COMPLETE = {
     "ru": "Завершите регистрацию",
@@ -104,8 +104,23 @@ INVALID_EMAIL = {
     "en": "Invalid email",
 }
 SMS_HAS_BEEN_SENT = {
-    "ru": "Сообщение SMS с кодом подтверждением был отправлен",
+    "ru": "Сообщение с SMS кодом подтверждением был отправлен",
     "kz": "SMS растау кодымен жіберілді",
     "en": "SMS with confirmation code has been sent",
+}
+ACTIVE_ROOM_EXISTS = {
+    "ru": "Комната существует",
+    "kz": "Бөлме бар",
+    "en": "Room exists",
+}
+ROOM_NOT_FOUND = {
+    "ru": "Комната не найден",
+    "kz": "Бөлме табылмады",
+    "en": "Room not found",
+}
+ROOM_IS_FULL = {
+    "ru": "Комната заполнена",
+    "kz": "Бөлме толды",
+    "en": "Room is full",
 }
 

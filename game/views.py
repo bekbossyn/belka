@@ -1,13 +1,16 @@
 import random
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from utils import http, codes, messages
 
-from game.models import Deck
-from utils.constants import SUITS
+from .models import Deck, Room, Settings
+from utils.constants import SUITS, ON_SAVE_SUM_30, ON_SAVE, ON_FULL_OPEN_FOUR, ON_FULL, ON_EGGS_OPEN_FOUR, ON_EGGS
+
+User = get_user_model()
 
 
 def test(request):
@@ -46,12 +49,59 @@ def show_visual(request):
     return render(request, "game/visual.html", context)
 
 
+def different_users(user01, user02, user03, user04):
+    """
+        Check if all the users are different
+    """
+    return user01 != user02 and user01 != user03 and user01 != user04 and user02 != user03 and user02 != user04 and user03 != user04
+
+
+@http.json_response()
+@http.requires_token()
+@csrf_exempt
+def create_room(request, user):
+    if user.rooms.filter(active=True).count() > 0:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTIVE_ROOM_EXISTS)
+    room = Room.objects.create(owner=user, user01=user)
+    return {
+        "room": room.json(),
+    }
+
+
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["room_id"])
+@csrf_exempt
+def enter_room(request, user):
+    try:
+        room = Room.objects.get(pk=int(request.POST.get("room_id")),  active=True)
+        # if room.user01 == user:
+        #     return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    is_full, free_place = room.is_full()
+    if is_full:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_IS_FULL)
+    else:
+        if free_place == 1 and user == room.owner:
+            room.user01 = user
+        elif free_place == 2:
+            room.user02 = user
+        elif free_place == 3:
+            room.user03 = user
+        elif free_place == 4:
+            room.user04 = user
+    room.save()
+    return {
+        "room": room.json(),
+    }
+
+
 @http.json_response()
 @http.requires_token()
 @http.required_parameters(["trump"])
 @csrf_exempt
 def create_deck(request, user):
-
     trump = int(request.POST.get("trump") or request.GET.get("trump"))
     if trump not in [suit[0] for suit in SUITS]:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="trump")

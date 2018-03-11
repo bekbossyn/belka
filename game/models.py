@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
-    MOVES_QUEUE
+    MOVES_QUEUE, ON_SAVE, ON_SAVE_SUM_30, ON_FULL, ON_FULL_OPEN_FOUR, ON_EGGS_OPEN_FOUR, ON_EGGS
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
@@ -16,12 +16,87 @@ from utils.time_utils import dt_to_timestamp
 class Room(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='rooms',
                               on_delete=models.CASCADE)
+    user01 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user01',
+                               on_delete=models.CASCADE)
+    user02 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user02',
+                               on_delete=models.CASCADE)
+    user03 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user03',
+                               on_delete=models.CASCADE)
+    user04 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user04',
+                               on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    pass
 
     def __str__(self):
-        return u"room_pk={0}".format(self.pk)
+        return u"room {0} of user {1}".format(self.pk, self.owner_id)
+
+    def is_full(self):
+        free_place = -1
+        if not self.user01:
+            free_place = 1
+        if not self.user02:
+            free_place = 2
+        elif not self.user03:
+            free_place = 3
+        elif not self.user04:
+            free_place = 4
+
+        return self.user01 and self.user02 and self.user03 and self.user04, free_place
+
+    def create_deck(self, trump=SUITS[0]):
+        # Deck.objects.create(trump=trump)
+        self.decks.filter(active=True).update(active=False)
+        self.decks.create(trump=trump)
+        return self.decks.last()
+        pass
+
+    def json(self, active=True, user=None):
+        return {
+            "room_id": self.pk,
+            "room_owner_id": self.owner_id,
+            "room_user01_id": self.user01_id,
+            "room_user02_id": self.user02_id,
+            "room_user03_id": self.user03_id,
+            "room_user04_id": self.user04_id,
+            "active": self.active,
+            "timestamp": dt_to_timestamp(self.timestamp),
+            "settings": self.owner.game_settings.json(),
+        }
+
+    class Meta:
+        ordering = ['timestamp']
+
+
+@receiver(post_save, sender=Room)
+def room_deactivate(sender, instance, **kwargs):
+    if instance.user01 is None:
+        instance.active = False
+
+
+class Settings(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='game_settings', on_delete=models.CASCADE)
+    on_save = models.IntegerField(choices=ON_SAVE, default=ON_SAVE_SUM_30)
+    on_full = models.IntegerField(choices=ON_FULL, default=ON_FULL_OPEN_FOUR)
+    ace_allowed = models.BooleanField(default=True)
+    on_eggs = models.IntegerField(choices=ON_EGGS, default=ON_EGGS_OPEN_FOUR)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return u"Game settings {0} of user {1}".format(self.pk, self.user_id)
+
+    def json(self, user=None):
+        return {
+            "settings_id": self.pk,
+            "user_id": self.user_id,
+            "save": self.on_save,
+            "save_display": self.get_on_save_display(),
+            "on_full": self.on_full,
+            "on_full_display": self.get_on_full_display(),
+            "ace_allowed": self.ace_allowed,
+            "on_eggs": self.on_eggs,
+            "on_eggs_display": self.get_on_eggs_display(),
+            "timestamp": dt_to_timestamp(self.timestamp),
+        }
 
     class Meta:
         ordering = ['timestamp']
@@ -36,7 +111,7 @@ class Deck(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"deck_pk={0}".format(self.pk)
+        return u"deck {0}".format(self.pk)
 
     def json(self, active=True):
         return {
@@ -216,7 +291,7 @@ class Hand(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"hand_pk={0}".format(self.pk)
+        return u"hand {0}".format(self.pk)
 
     def json(self, active=True):
         return {
@@ -255,7 +330,7 @@ class Card(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"card_pk={0}, {1}".format(self.pk, self.name)
+        return u"card {0}, {1}".format(self.pk, self.name)
 
     def json(self):
         return {

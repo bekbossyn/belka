@@ -6,8 +6,6 @@ TOTAL_MOVES_INITIAL = 0
 
 #   Sums
 INITIAL_SUM = 0
-SAVE_SUM_30 = 30
-SAVE_SUM_31 = 31
 FULL_SUM = 120
 
 TEAM_MAX = 12
@@ -129,9 +127,9 @@ FINAL_CIRCLE = 8
 
 HIDE_LAST = 4
 
-RUSSIAN = 0
-KAZAKH = 1
-ENGLISH = 2
+RUSSIAN = 1
+KAZAKH = 2
+ENGLISH = 3
 
 RUSSIAN_NAME = u'русский'
 KAZAKH_NAME = u'қазақша'
@@ -143,6 +141,26 @@ LANGUAGES = (
     (ENGLISH, ENGLISH_NAME),
 )
 
+ON_SAVE_SUM_30 = 30
+ON_SAVE_SUM_31 = 31
 
+ON_SAVE = (
+    (ON_SAVE_SUM_30, u'on_save_30'),
+    (ON_SAVE_SUM_31, u'on_save_31'),
+)
 
+ON_FULL_OPEN_FOUR = 1
+ON_FULL_FINISH_GAME = 2
 
+ON_FULL = (
+    (ON_FULL_OPEN_FOUR, u'on_full_open_four'),
+    (ON_FULL_FINISH_GAME, u'on_full_finish_game'),
+)
+
+ON_EGGS_OPEN_FOUR = 1
+ON_EGGS_OPEN_DOUBLE = 2
+
+ON_EGGS = (
+    (ON_EGGS_OPEN_FOUR, u'on_eggs_open_four'),
+    (ON_EGGS_OPEN_DOUBLE, u'on_eggs_open_double'),
+)
