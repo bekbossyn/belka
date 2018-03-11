@@ -6,13 +6,29 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
+from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
     MOVES_QUEUE
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
 
+class Room(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='rooms',
+                              on_delete=models.CASCADE)
+    active = models.BooleanField(default=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    pass
+
+    def __str__(self):
+        return u"room_pk={0}".format(self.pk)
+
+    class Meta:
+        ordering = ['timestamp']
+
+
 class Deck(models.Model):
+    room = models.ForeignKey(Room, related_name='decks', blank=True, null=True, on_delete=models.CASCADE)
     trump = models.PositiveSmallIntegerField(choices=SUITS, default=SUITS[0])
     next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
@@ -32,6 +48,9 @@ class Deck(models.Model):
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
         }
+
+    class Meta:
+        ordering = ['timestamp']
 
 
 @receiver(pre_save, sender=Deck)
@@ -207,6 +226,9 @@ class Hand(models.Model):
             "timestamp": dt_to_timestamp(self.timestamp),
         }
 
+    class Meta:
+        ordering = ['timestamp']
+
 
 @receiver(pre_save, sender=Hand)
 def hand_initials(sender, instance, **kwargs):
@@ -248,7 +270,7 @@ class Card(models.Model):
         }
 
     class Meta:
-        ordering = ['pk']
+        ordering = ['timestamp']
 
 
 @receiver(pre_save, sender=Card)
@@ -262,8 +284,6 @@ def card_initials(sender, instance, **kwargs):
 
         #   Set Primary Key
         instance.pk = new_pk
-
-
 
 
 
