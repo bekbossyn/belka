@@ -5,9 +5,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+
 from utils import http, codes, messages
 
-from .models import Deck, Room, Settings
+from .models import Deck, Room, GameSetting
 from utils.constants import SUITS, ON_SAVE_SUM_30, ON_SAVE, ON_FULL_OPEN_FOUR, ON_FULL, ON_EGGS_OPEN_FOUR, ON_EGGS
 
 User = get_user_model()
@@ -63,6 +64,42 @@ def create_room(request, user):
     if user.rooms.filter(active=True).count() > 0:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTIVE_ROOM_EXISTS)
     room = Room.objects.create(owner=user, user01=user)
+    # setting = user.setting.objects.last()
+    # return {
+    #     setting.json(),
+    # }
+    settings, created = GameSetting.objects.get_or_create(owner=user)
+    if created:
+        try:
+            on_save = int(request.POST.get("on_save", ON_SAVE_SUM_30))
+        except:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_save")
+        if on_save not in [x[0] for x in ON_SAVE]:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_save")
+        try:
+            on_full = int(request.POST.get("on_full", ON_FULL_OPEN_FOUR))
+        except:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_full")
+        if on_full not in [x[0] for x in ON_FULL]:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_full")
+        try:
+            on_eggs = int(request.POST.get("on_eggs", ON_EGGS_OPEN_FOUR))
+        except:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_eggs")
+        if on_eggs not in [x[0] for x in ON_EGGS]:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_eggs")
+        try:
+            ace_allowed = request.POST.get("ace_allowed", True)
+        except:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="ace_allowed")
+        if type(ace_allowed) != type(True):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="ace_allowed")
+        settings.on_save = on_save
+        settings.on_full = on_full
+        settings.on_eggs = on_eggs
+        settings.ace_allowed = ace_allowed
+        settings.save()
+
     return {
         "room": room.json(),
     }
@@ -75,8 +112,8 @@ def create_room(request, user):
 def enter_room(request, user):
     try:
         room = Room.objects.get(pk=int(request.POST.get("room_id")),  active=True)
-        # if room.user01 == user:
-        #     return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS)
+        if room.user01 == user and room.user01:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     is_full, free_place = room.is_full()

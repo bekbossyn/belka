@@ -8,22 +8,17 @@ from django.dispatch import receiver
 
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
-    MOVES_QUEUE, ON_SAVE, ON_SAVE_SUM_30, ON_FULL, ON_FULL_OPEN_FOUR, ON_EGGS_OPEN_FOUR, ON_EGGS
+    MOVES_QUEUE, ON_SAVE_SUM_30, ON_FULL_OPEN_FOUR, ON_EGGS_OPEN_FOUR, ON_EGGS, ON_FULL, ON_SAVE
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
 
 class Room(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='rooms',
-                              on_delete=models.CASCADE)
-    user01 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user01',
-                               on_delete=models.CASCADE)
-    user02 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user02',
-                               on_delete=models.CASCADE)
-    user03 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user03',
-                               on_delete=models.CASCADE)
-    user04 = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='user04',
-                               on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='rooms', null=False, on_delete=models.CASCADE)
+    user01 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user01', on_delete=models.CASCADE)
+    user02 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user02', on_delete=models.CASCADE)
+    user03 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user03', on_delete=models.CASCADE)
+    user04 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user04', on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -34,7 +29,7 @@ class Room(models.Model):
         free_place = -1
         if not self.user01:
             free_place = 1
-        if not self.user02:
+        elif not self.user02:
             free_place = 2
         elif not self.user03:
             free_place = 3
@@ -50,7 +45,7 @@ class Room(models.Model):
         return self.decks.last()
         pass
 
-    def json(self, active=True, user=None):
+    def json(self):
         return {
             "room_id": self.pk,
             "room_owner_id": self.owner_id,
@@ -60,11 +55,11 @@ class Room(models.Model):
             "room_user04_id": self.user04_id,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
-            "settings": self.owner.game_settings.json(),
+            "setting": self.owner.game_setting.json(),
         }
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ['-timestamp']
 
 
 @receiver(post_save, sender=Room)
@@ -73,8 +68,8 @@ def room_deactivate(sender, instance, **kwargs):
         instance.active = False
 
 
-class Settings(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='game_settings', on_delete=models.CASCADE)
+class GameSetting(models.Model):
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='game_setting', null=True, on_delete=models.CASCADE)
     on_save = models.IntegerField(choices=ON_SAVE, default=ON_SAVE_SUM_30)
     on_full = models.IntegerField(choices=ON_FULL, default=ON_FULL_OPEN_FOUR)
     ace_allowed = models.BooleanField(default=True)
@@ -82,12 +77,12 @@ class Settings(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"Game settings {0} of user {1}".format(self.pk, self.user_id)
+        return u"Game setting {0} of user {1}".format(self.pk, self.owner_id)
 
-    def json(self, user=None):
+    def json(self):
         return {
-            "settings_id": self.pk,
-            "user_id": self.user_id,
+            "setting_id": self.pk,
+            "user_id": self.owner_id,
             "save": self.on_save,
             "save_display": self.get_on_save_display(),
             "on_full": self.on_full,
@@ -99,11 +94,11 @@ class Settings(models.Model):
         }
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ['-timestamp']
 
 
 class Deck(models.Model):
-    room = models.ForeignKey(Room, related_name='decks', blank=True, null=True, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, related_name='decks', null=False, on_delete=models.CASCADE)
     trump = models.PositiveSmallIntegerField(choices=SUITS, default=SUITS[0])
     next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
@@ -111,7 +106,7 @@ class Deck(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"deck {0}".format(self.pk)
+        return u"deck {0} of room {1}".format(self.pk, self.room_id)
 
     def json(self, active=True):
         return {
@@ -125,7 +120,7 @@ class Deck(models.Model):
         }
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ['-timestamp']
 
 
 @receiver(pre_save, sender=Deck)
@@ -286,12 +281,12 @@ def card_to_number(trump, suit, card_number):
 
 
 class Hand(models.Model):
-    deck = models.ForeignKey(Deck, related_name='hands', blank=True, null=True, on_delete=models.CASCADE)
+    deck = models.ForeignKey(Deck, related_name='hands', null=False, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"hand {0}".format(self.pk)
+        return u"hand {0} of deck {1}".format(self.pk, self.deck_id)
 
     def json(self, active=True):
         return {
@@ -302,7 +297,7 @@ class Hand(models.Model):
         }
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ['-timestamp']
 
 
 @receiver(pre_save, sender=Hand)
@@ -319,7 +314,7 @@ def hand_initials(sender, instance, **kwargs):
 
 
 class Card(models.Model):
-    hand = models.ForeignKey(Hand, related_name='cards', blank=True, null=True, on_delete=models.CASCADE)
+    hand = models.ForeignKey(Hand, related_name='cards', null=False, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     value = models.PositiveSmallIntegerField(default=0)
     worth = models.PositiveSmallIntegerField(default=0)
@@ -330,7 +325,7 @@ class Card(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"card {0}, {1}".format(self.pk, self.name)
+        return u"card {0}, {1} hand {2}".format(self.pk, self.name, self.hand_id)
 
     def json(self):
         return {
@@ -345,7 +340,7 @@ class Card(models.Model):
         }
 
     class Meta:
-        ordering = ['timestamp']
+        ordering = ['-timestamp']
 
 
 @receiver(pre_save, sender=Card)

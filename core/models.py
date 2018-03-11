@@ -218,12 +218,11 @@ class TokenLog(models.Model):
     Token log model
     """
     token = models.CharField(max_length=500, blank=False, null=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=False, null=False, related_name='tokens',
-                             on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='tokens', null=False, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
-    def __unicode__(self):
-        return "token={0}".format(self.token)
+    def __str__(self):
+        return u"Token {0} of user {1}".format(self.pk, self.user_id)
 
     class Meta:
         index_together = [
