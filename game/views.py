@@ -2,6 +2,7 @@ import random
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -64,42 +65,6 @@ def create_room(request, user):
     if user.rooms.filter(active=True).count() > 0:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTIVE_ROOM_EXISTS)
     room = Room.objects.create(owner=user, user01=user)
-    # setting = user.setting.objects.last()
-    # return {
-    #     setting.json(),
-    # }
-    settings, created = GameSetting.objects.get_or_create(owner=user)
-    if created:
-        try:
-            on_save = int(request.POST.get("on_save", ON_SAVE_SUM_30))
-        except:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_save")
-        if on_save not in [x[0] for x in ON_SAVE]:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_save")
-        try:
-            on_full = int(request.POST.get("on_full", ON_FULL_OPEN_FOUR))
-        except:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_full")
-        if on_full not in [x[0] for x in ON_FULL]:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_full")
-        try:
-            on_eggs = int(request.POST.get("on_eggs", ON_EGGS_OPEN_FOUR))
-        except:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_eggs")
-        if on_eggs not in [x[0] for x in ON_EGGS]:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="on_eggs")
-        try:
-            ace_allowed = request.POST.get("ace_allowed", True)
-        except:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="ace_allowed")
-        if type(ace_allowed) != type(True):
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="ace_allowed")
-        settings.on_save = on_save
-        settings.on_full = on_full
-        settings.on_eggs = on_eggs
-        settings.ace_allowed = ace_allowed
-        settings.save()
-
     return {
         "room": room.json(),
     }
@@ -117,6 +82,8 @@ def enter_room(request, user):
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     is_full, free_place = room.is_full()
+    if room.inside(user):
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS)
     if is_full:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_IS_FULL)
     else:
@@ -128,6 +95,33 @@ def enter_room(request, user):
             room.user03 = user
         elif free_place == 4:
             room.user04 = user
+    room.save()
+    return {
+        "room": room.json(),
+    }
+
+
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["room_id"])
+@csrf_exempt
+def leave_room(request, user):
+    try:
+        room_id = int(request.POST.get("room_id"))
+        room = Room.objects.filter(
+            Q(pk=room_id, user01=user, active=True) | Q(pk=room_id, user02=user, active=True) | Q(pk=room_id, user03=user, active=True) | Q(pk=room_id, user04=user, active=True)).last()
+        if room is None:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    if room.user02 == user:
+        room.user02 = None
+    elif room.user03 == user:
+        room.user03 = None
+    elif room.user04 == user:
+        room.user04 = None
+    elif room.user01 == user:
+        room.user01 = None
     room.save()
     return {
         "room": room.json(),

@@ -19,6 +19,7 @@ class Room(models.Model):
     user02 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user02', on_delete=models.CASCADE)
     user03 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user03', on_delete=models.CASCADE)
     user04 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user04', on_delete=models.CASCADE)
+    full = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -26,6 +27,10 @@ class Room(models.Model):
         return u"room {0} of user {1}".format(self.pk, self.owner_id)
 
     def is_full(self):
+        """
+            return True, -1, if room is Full
+            return False, place_id if place id is Free
+        """
         free_place = -1
         if not self.user01:
             free_place = 1
@@ -35,8 +40,14 @@ class Room(models.Model):
             free_place = 3
         elif not self.user04:
             free_place = 4
+        full = self.user01 is not None and self.user02 is not None and self.user03 is not None and self.user04 is not None
+        return full, free_place
 
-        return self.user01 and self.user02 and self.user03 and self.user04, free_place
+    def inside(self, user=None):
+        """
+            return True if user is already in the room, False otherwise
+        """
+        return user == self.user01 or user == self.user02 or user == self.user03 or user == self.user04
 
     def create_deck(self, trump=SUITS[0]):
         # Deck.objects.create(trump=trump)
@@ -53,6 +64,7 @@ class Room(models.Model):
             "room_user02_id": self.user02_id,
             "room_user03_id": self.user03_id,
             "room_user04_id": self.user04_id,
+            "full": self.full,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
             "setting": self.owner.game_setting.json(),
@@ -62,10 +74,21 @@ class Room(models.Model):
         ordering = ['-timestamp']
 
 
-@receiver(post_save, sender=Room)
-def room_deactivate(sender, instance, **kwargs):
+@receiver(pre_save, sender=Room)
+def room_update(sender, instance, **kwargs):
+    """
+        Controls updating of active, full states and closing the room
+    """
     if instance.user01 is None:
         instance.active = False
+        instance.user02 = None
+        instance.user03 = None
+        instance.user04 = None
+    full, _ = instance.is_full()
+    if full:
+        instance.full = True
+    else:
+        instance.full = False
 
 
 class GameSetting(models.Model):
