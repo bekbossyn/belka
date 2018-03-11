@@ -5,7 +5,10 @@ from datetime import timedelta
 import requests
 
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+from game.models import GameSetting
 from . import tasks
 from utils.constants import HIDE_LAST, LANGUAGES, RUSSIAN
 from utils.image_utils import get_url
@@ -211,6 +214,14 @@ class MainUser(AbstractBaseUser, PermissionsMixin):
     #     if self.contact_number is None and self.phone:
     #         self.contact_number = self.phone
     #     super(MainUser, self).save(*args, **kwargs)
+
+
+@receiver(post_save, sender=MainUser)
+def create_game_settings(sender, instance, **kwargs):
+    """
+        Create game_settings for the user, if does not exist
+    """
+    _ = GameSetting.objects.get_or_create(owner=instance)
 
 
 class TokenLog(models.Model):

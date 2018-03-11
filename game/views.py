@@ -77,27 +77,30 @@ def create_room(request, user):
 def enter_room(request, user):
     try:
         room = Room.objects.get(pk=int(request.POST.get("room_id")),  active=True)
-        if room.user01 == user and room.user01:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     is_full, free_place = room.is_full()
     if room.inside(user):
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS)
-    if is_full:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_IS_FULL)
+        inside = True
     else:
-        if free_place == 1 and user == room.owner:
-            room.user01 = user
-        elif free_place == 2:
-            room.user02 = user
-        elif free_place == 3:
-            room.user03 = user
-        elif free_place == 4:
-            room.user04 = user
-    room.save()
+        inside = False
+    if not inside:
+        if is_full:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_IS_FULL)
+        else:
+            if free_place == 1 and user == room.owner:
+                room.user01 = user
+            elif free_place == 2:
+                room.user02 = user
+            elif free_place == 3:
+                room.user03 = user
+            elif free_place == 4:
+                room.user04 = user
+        room.save()
+
     return {
         "room": room.json(),
+        "entered": not inside,
     }
 
 
