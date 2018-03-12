@@ -15,10 +15,10 @@ from utils.time_utils import dt_to_timestamp
 
 class Room(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='rooms', null=False, on_delete=models.CASCADE)
-    user01 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user01', on_delete=models.CASCADE)
-    user02 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user02', on_delete=models.CASCADE)
-    user03 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user03', on_delete=models.CASCADE)
-    user04 = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, related_name='user04', on_delete=models.CASCADE)
+    user01 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user01', on_delete=models.CASCADE)
+    user02 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user02', on_delete=models.CASCADE)
+    user03 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user03', on_delete=models.CASCADE)
+    user04 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user04', on_delete=models.CASCADE)
     full = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -93,7 +93,7 @@ def room_update(sender, instance, **kwargs):
 
 
 class GameSetting(models.Model):
-    owner = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='game_setting', null=True, on_delete=models.CASCADE)
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='game_setting', null=False, on_delete=models.CASCADE)
     on_save = models.IntegerField(choices=ON_SAVE, default=ON_SAVE_SUM_30)
     on_full = models.IntegerField(choices=ON_FULL, default=ON_FULL_OPEN_FOUR)
     ace_allowed = models.BooleanField(default=True)
@@ -122,7 +122,7 @@ class GameSetting(models.Model):
 
 
 class Deck(models.Model):
-    room = models.ForeignKey(Room, related_name='decks', null=True, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, related_name='decks', null=False, on_delete=models.CASCADE)
     trump = models.PositiveSmallIntegerField(choices=SUITS, default=SUITS[0])
     next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
