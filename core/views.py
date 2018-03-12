@@ -33,7 +33,7 @@ def sign_in(request):
     if user:
         return {
             'token': token.create_token(user, remove_others=True),
-            'user': user.owner_json()
+            'user': user.json(user=user)
         }
     return http.code_response(code=codes.BAD_REQUEST,
                               message=messages.WRONG_PHONE_OR_PASSWORD)
@@ -281,7 +281,7 @@ def social_sign_up(request):
             user, _ = User.objects.get_or_create(email=activation.email)
         sign_up_user_complete(user, activation)
         return {
-            "user": user.owner_json(),
+            "user": user.json(user=user),
             "token": token.create_token(user, remove_others=True)
         }
     return http.code_response(code=codes.OK, message=message)
@@ -349,7 +349,7 @@ def sign_up_complete(request):
     sign_up_user_complete(user=u, activation=activation)
     return {
         'token': token.create_token(u, remove_others=True),
-        'user': u.owner_json()
+        'user': u.json(user=user)
     }
 
 
@@ -404,7 +404,7 @@ def change_email(request, user):
         return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_EMAIL)
     Activation.objects.create_email_change_code(email=user.email, phone=user.phone, new_email=new_email)
     return {
-        "user": user.owner_json()
+        "user": user.json(user=user)
     }
 
 
@@ -446,7 +446,7 @@ def change_email_complete(request, user):
     activation.used = True
     activation.save()
     return {
-        "user": u.owner_json()
+        "user": u.json(user=user)
     }
 
 
@@ -510,7 +510,7 @@ def reset_email_password_complete(request):
 
     return {
         'token': token.create_token(u, remove_others=True),
-        'user': u.owner_json()
+        'user': u.json(user=user)
     }
 
 
@@ -535,7 +535,7 @@ def change_password(request, user):
     else:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_PASSWORD)
     return {
-        "user": user.owner_json()
+        "user": user.json(user=user)
     }
 
 
@@ -560,7 +560,7 @@ def change_phone(request, user):
         return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_PHONE_FORMAT)
     Activation.objects.create_phone_change_code(phone=user.phone, email=user.email, new_phone=request.POST.get("new_phone"))
     return {
-        "user": user.owner_json()
+        "user": user.json(user=user)
     }
 
 
@@ -601,7 +601,7 @@ def change_phone_complete(request, user):
     activation.used = True
     activation.save()
     return {
-        "user": u.owner_json()
+        "user": u.json(user=user)
     }
 
 
@@ -648,7 +648,7 @@ def reset_password_complete(request):
 
     return {
         'token': token.create_token(user, remove_others=True),
-        'user': user.owner_json()
+        'user': user.json(user=user)
     }
 
 
@@ -688,7 +688,7 @@ def social_authenticate(social_type, social_id, email=None, phone=None, full_nam
         return {
             'exists': True,
             'token': token.create_token(user, remove_others=True),
-            'user': user.owner_json()
+            'user': user.json(user=user)
         }
     return{
         'exists': False,

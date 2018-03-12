@@ -56,7 +56,6 @@ class MainUserManager(BaseUserManager):
         return user
 
 
-# class MainUser(AbstractBaseUser):
 class MainUser(AbstractBaseUser, PermissionsMixin):
     """
     Custom user model with phone .
@@ -131,6 +130,7 @@ class MainUser(AbstractBaseUser, PermissionsMixin):
                 "review": self.review if self.review else None,
                 # "reviews": [r.json(user) for r in self.reviews.all()],
                 "verified": self.verified(),
+                'game_setting': self.game_setting.json(),
             }
         else:
             result = {
@@ -157,6 +157,7 @@ class MainUser(AbstractBaseUser, PermissionsMixin):
                 "review": self.review if self.review else None,
                 # "reviews": [r.json(user=self) for r in self.reviews.all()],
                 "verified": self.verified(),
+                'game_setting': self.game_setting.json(),
             }
         else:
             result = {
@@ -169,14 +170,14 @@ class MainUser(AbstractBaseUser, PermissionsMixin):
         return result
 
     def hidden_email(self, user=None):
-        if self.email:
+        if self.email and user != self:
             return '*' * len(self.email)
-        return None
+        return self.email or None
 
     def hidden_phone(self, user=None):
-        if self.phone:
+        if self.phone and user != self:
             return self.phone[:(len(self.phone) - HIDE_LAST)] + '*' * HIDE_LAST
-        return None
+        return self.phone or None
 
     def verified(self):
         email = False

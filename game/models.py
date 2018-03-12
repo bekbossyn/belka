@@ -107,8 +107,8 @@ class GameSetting(models.Model):
         return {
             "setting_id": self.pk,
             "user_id": self.owner_id,
-            "save": self.on_save,
-            "save_display": self.get_on_save_display(),
+            "on_save": self.on_save,
+            "on_save_display": self.get_on_save_display(),
             "on_full": self.on_full,
             "on_full_display": self.get_on_full_display(),
             "ace_allowed": self.ace_allowed,

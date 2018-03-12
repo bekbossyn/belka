@@ -150,6 +150,7 @@ def create_deck(request, user):
 
 
 @http.json_response()
+@http.requires_token(optional=True)
 @http.required_parameters(["deck_id"])
 @csrf_exempt
 def show_deck(request):
