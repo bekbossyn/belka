@@ -13,16 +13,22 @@ from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
 
-class Game(models.Model):
-    pass
+# class Game(models.Model):
+#     pass
 
 
 class Room(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='rooms', null=False, on_delete=models.CASCADE)
     user01 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user01', on_delete=models.CASCADE)
+    user01_ready = models.BooleanField(default=False)
     user02 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user02', on_delete=models.CASCADE)
+    user02_ready = models.BooleanField(default=False)
     user03 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user03', on_delete=models.CASCADE)
+    user03_ready = models.BooleanField(default=False)
     user04 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user04', on_delete=models.CASCADE)
+    user04_ready = models.BooleanField(default=False)
+    all_ready = models.BooleanField(default=False)
+    started = models.BooleanField(default=False)
     full = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -63,15 +69,22 @@ class Room(models.Model):
     def json(self):
         return {
             "room_id": self.pk,
-            "room_owner_id": self.owner_id,
-            "room_user01_id": self.user01_id,
-            "room_user02_id": self.user02_id,
-            "room_user03_id": self.user03_id,
-            "room_user04_id": self.user04_id,
+            "owner_id": self.owner_id,
+            "user01_id": self.user01_id,
+            "user01_ready": self.user01_ready,
+            "user02_id": self.user02_id,
+            "user02_ready": self.user02_ready,
+            "user03_id": self.user03_id,
+            "user03_ready": self.user03_ready,
+            "user04_id": self.user04_id,
+            "user04_ready": self.user04_ready,
+            "all_ready": self.all_ready,
             "full": self.full,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
             "setting": self.owner.game_setting.json(),
+            "started": self.started,
+            "last_deck": self.decks.filter(active=True).last().json() if self.decks.count() > 0 else None,
         }
 
     class Meta:
@@ -94,6 +107,15 @@ def room_update(sender, instance, **kwargs):
         instance.full = True
     else:
         instance.full = False
+    if instance.user01 is None:
+        instance.user01_ready = False
+    if instance.user02 is None:
+        instance.user02_ready = False
+    if instance.user03 is None:
+        instance.user03_ready = False
+    if instance.user04 is None:
+        instance.user04_ready = False
+    instance.all_ready = instance.user01_ready and instance.user02_ready and instance.user03_ready and instance.user04_ready
 
 
 class GameSetting(models.Model):
@@ -127,7 +149,7 @@ class GameSetting(models.Model):
 
 class Deck(models.Model):
     room = models.ForeignKey(Room, related_name='decks', null=False, on_delete=models.CASCADE)
-    trump = models.PositiveSmallIntegerField(choices=SUITS, default=SUITS[0])
+    trump = models.PositiveSmallIntegerField(choices=SUITS, default=CLUBS_VALUE)
     next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
     active = models.BooleanField(default=True)
@@ -243,6 +265,10 @@ def sort_by_trump(trump, my_list):
 
 @receiver(post_save, sender=Deck)
 def deck_finals(sender, instance, **kwargs):
+    """
+        creates the deck with random hands and cards.
+        deactivates all the decks of the room except last created
+    """
     if instance.hands.count() == 0:
         bag = list()
         for suit in SUITS:
@@ -269,6 +295,8 @@ def deck_finals(sender, instance, **kwargs):
                 trump_priority = current_card["trump_priority"]
                 Card.objects.create(hand=hand, name=name, value=value, worth=worth, image_url=image_url,
                                     trump_priority=trump_priority)
+    last = instance.room.decks.last()
+    instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
 
 
 def card_to_number(trump, suit, card_number):

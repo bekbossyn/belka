@@ -123,4 +123,14 @@ ROOM_IS_FULL = {
     "kz": "Бөлме толды",
     "en": "Room is full",
 }
+ACTION_NOT_ALLOWED = {
+    "ru": "Действие не разрешено",
+    "kz": "Амал рұқсат етілмеген",
+    "en": "Action is not allowed",
+}
+CARD_NOT_FOUND = {
+    "ru": "Карта не найдена",
+    "kz": "Карта табылмады",
+    "en": "Card not found",
+}
 

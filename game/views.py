@@ -43,10 +43,10 @@ def show_visual(request):
             hand04 = hand
     context = {
         "deck": deck,
-        "hand_01": hand01,
-        "hand_02": hand02,
-        "hand_03": hand03,
-        "hand_04": hand04,
+        "hand01": hand01,
+        "hand02": hand02,
+        "hand03": hand03,
+        "hand04": hand04,
     }
     return render(request, "game/visual.html", context)
 
@@ -96,6 +96,10 @@ def enter_room(request, user):
                 room.user03 = user
             elif free_place == 4:
                 room.user04 = user
+        room.user01_ready = False
+        room.user02_ready = False
+        room.user03_ready = False
+        room.user04_ready = False
         room.save()
 
     return {
@@ -125,6 +129,10 @@ def leave_room(request, user):
         room.user04 = None
     elif room.user01 == user:
         room.user01 = None
+    room.user01_ready = False
+    room.user02_ready = False
+    room.user03_ready = False
+    room.user04_ready = False
     room.save()
     return {
         "room": room.json(),
@@ -149,7 +157,49 @@ def remove_user(request, user):
         room.user03 = None
     elif room.user04 == new_user:
         room.user04 = None
+    room.user01_ready = False
+    room.user02_ready = False
+    room.user03_ready = False
+    room.user04_ready = False
     room.save()
+    return {
+        "room": room.json(),
+    }
+
+
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["room_id"])
+@csrf_exempt
+def ready(request, user):
+    try:
+        room_id = int(request.POST.get("room_id"))
+        room = Room.objects.filter(
+            Q(pk=room_id, user01=user, active=True) | Q(pk=room_id, user02=user, active=True) | Q(pk=room_id, user03=user, active=True) | Q(pk=room_id, user04=user, active=True)).last()
+        if room is None:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    if user == room.user01:
+        room.user01_ready = True
+    elif user == room.user02:
+        room.user02_ready = True
+    elif user == room.user03:
+        room.user03_ready = True
+    elif user == room.user04:
+        room.user04_ready = True
+    room.save()
+    if room.all_ready:
+        if user == room.owner:
+            deck, created = Deck.objects.get_or_create(room=room, active=True)
+            if created:
+                room.started = True
+                room.save()
+        else:
+            try:
+                deck = Deck.objects.get(room=room, active=True)
+            except:
+                return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     return {
         "room": room.json(),
     }
@@ -190,43 +240,58 @@ def show_deck(request, user):
 
 @http.json_response()
 @http.requires_token()
-@http.required_parameters(["room_id"])
+@http.required_parameters(["room_id", "deck_id", "card_id"])
 @csrf_exempt
-def start_game(request, user):
-    #   todo
-    room_id = int(request.POST.get("room_id") or request.GET.get("room_id"))
+def make_move(request, user):
     try:
-        room = Room.objects.get(pk=room_id, owner=user, active=True, full=True)
+        room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), active=True)
+        if not room.inside(user):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    try:
+        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")), room=room, active=True)
+        if deck.total_moves > 31:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
 
+    next_move = deck.next_move
+    #   if not queue of the user to make move
+    if (next_move == 1 and user != room.user01) or (next_move == 2 and user != room.user02) or (
+            next_move == 3 and user != room.user03) or (next_move == 4 and user != room.user04):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
+
+    total_moves = deck.total_moves
+    index = 1
+    try:
+        card_id = int(request.POST.get("card_id") or request.GET.get("card_id"))
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="card_id")
+    hand = None
+    for hand in deck.hands.all():
+        if index == next_move:
+            break
+        index += 1
+    if card_id not in [card.id for card in hand.cards.all()]:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.CARD_NOT_FOUND)
+
+    if hand.cards.get(id=card_id).active is False:
+        #   if card is not active ALREADY.
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
+    if total_moves % 32 == 0:
+        #   if move is first move of current circle of four turns
+        hand.cards.filter(pk=card_id).update(active=False)
+        deck.next_move = next_move + 1
+        deck.save()
+    else:
+        #   TODO get allowed list of cards
+        # allowed_list = hand.cards.all()
+        pass
 
     return {
-        # "deck": deck.json(),
+        "deck": hand.json(),
     }
-
-# @http.json_response()
-# @http.required_parameters(["deck_id"])
-# @csrf_exempt
-# def make_move(request):
-#     try:
-#         deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")))
-#     except ObjectDoesNotExist:
-#         return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
-#     allowed_hand_list = deck.allowed_hand_list()
-#     if len(allowed_hand_list) == 8:
-#         # ALL moves can be made
-#         move = random.randint(0, len(allowed_hand_list) - 1)
-#     else:
-#         #   TODO create movement
-#         move = 0
-#     # allowed_hand_list.remove(allowed_hand_list[move])
-#     deck.deactivate(allowed_hand_list[move])
-#     deck.save()
-#     return {
-#         "allowed": allowed_hand_list,
-#         "deck": deck.json(),
-#     }
 
 
 
