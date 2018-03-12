@@ -349,7 +349,7 @@ def sign_up_complete(request):
     sign_up_user_complete(user=u, activation=activation)
     return {
         'token': token.create_token(u, remove_others=True),
-        'user': u.json(user=user)
+        'user': u.json(user=u)
     }
 
 
@@ -510,7 +510,7 @@ def reset_email_password_complete(request):
 
     return {
         'token': token.create_token(u, remove_others=True),
-        'user': u.json(user=user)
+        'user': u.json(user=u)
     }
 
 
