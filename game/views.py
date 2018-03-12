@@ -133,6 +133,30 @@ def leave_room(request, user):
 
 @http.json_response()
 @http.requires_token()
+@http.required_parameters(["user_id"])
+@csrf_exempt
+def remove_user(request, user):
+    try:
+        room = user.rooms.get(active=True)
+        new_user = User.objects.get(pk=int(request.POST.get("user_id") or request.GET.get("user_id")))
+        if user == new_user or not room.inside(new_user):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    if room.user02 == new_user:
+        room.user02 = None
+    elif room.user03 == new_user:
+        room.user03 = None
+    elif room.user04 == new_user:
+        room.user04 = None
+    room.save()
+    return {
+        "room": room.json(),
+    }
+
+
+@http.json_response()
+@http.requires_token()
 @http.required_parameters(["room_id", "trump"])
 @csrf_exempt
 def create_deck(request, user):
@@ -153,7 +177,7 @@ def create_deck(request, user):
 @http.requires_token(optional=True)
 @http.required_parameters(["deck_id"])
 @csrf_exempt
-def show_deck(request):
+def show_deck(request, user):
     deck_id = int(request.POST.get("deck_id") or request.GET.get("deck_id"))
     try:
         deck = Deck.objects.get(pk=deck_id, active=True)
@@ -163,6 +187,23 @@ def show_deck(request):
         "deck": deck.json(),
     }
 
+
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["room_id"])
+@csrf_exempt
+def start_game(request, user):
+    #   todo
+    room_id = int(request.POST.get("room_id") or request.GET.get("room_id"))
+    try:
+        room = Room.objects.get(pk=room_id, owner=user, active=True, full=True)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+
+
+    return {
+        # "deck": deck.json(),
+    }
 
 # @http.json_response()
 # @http.required_parameters(["deck_id"])
