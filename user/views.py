@@ -55,7 +55,8 @@ def update_profile(request, user):
     """
     try:
         name = request.POST.get("name") or request.GET.get("name")
-        user.name = name
+        if name:
+            user.name = name
     except:
         pass
     try:
