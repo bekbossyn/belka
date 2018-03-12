@@ -9,8 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from utils import http, codes, messages
 
-from .models import Deck, Room, GameSetting
-from utils.constants import SUITS, ON_SAVE_SUM_30, ON_SAVE, ON_FULL_OPEN_FOUR, ON_FULL, ON_EGGS_OPEN_FOUR, ON_EGGS
+from .models import Deck, Room
+from utils.constants import SUITS
 
 User = get_user_model()
 
@@ -133,13 +133,17 @@ def leave_room(request, user):
 
 @http.json_response()
 @http.requires_token()
-@http.required_parameters(["trump"])
+@http.required_parameters(["room_id", "trump"])
 @csrf_exempt
 def create_deck(request, user):
+    try:
+        room = Room.objects.get(pk=int(request.POST.get("room_id")), owner=user, active=True)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     trump = int(request.POST.get("trump") or request.GET.get("trump"))
     if trump not in [suit[0] for suit in SUITS]:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="trump")
-    deck = Deck.objects.create(trump=trump)
+    deck = Deck.objects.create(room=room, trump=trump)
     return {
         "deck": deck.json(),
     }
@@ -149,9 +153,11 @@ def create_deck(request, user):
 @http.required_parameters(["deck_id"])
 @csrf_exempt
 def show_deck(request):
-
     deck_id = int(request.POST.get("deck_id") or request.GET.get("deck_id"))
-    deck = Deck.objects.get(pk=deck_id)
+    try:
+        deck = Deck.objects.get(pk=deck_id, active=True)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
     return {
         "deck": deck.json(),
     }

@@ -71,7 +71,7 @@ class Room(models.Model):
         }
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['timestamp']
 
 
 @receiver(pre_save, sender=Room)
@@ -84,6 +84,7 @@ def room_update(sender, instance, **kwargs):
         instance.user02 = None
         instance.user03 = None
         instance.user04 = None
+        instance.decks.filter(active=True).update(active=False)
     full, _ = instance.is_full()
     if full:
         instance.full = True
@@ -117,7 +118,7 @@ class GameSetting(models.Model):
         }
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['timestamp']
 
 
 class Deck(models.Model):
@@ -143,7 +144,7 @@ class Deck(models.Model):
         }
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['timestamp']
 
 
 def sort_by_trump(trump, my_list):
@@ -307,7 +308,7 @@ class Hand(models.Model):
         }
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['timestamp']
 
 
 @receiver(pre_save, sender=Hand)
@@ -350,7 +351,7 @@ class Card(models.Model):
         }
 
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['timestamp']
 
 
 @receiver(pre_save, sender=Card)
