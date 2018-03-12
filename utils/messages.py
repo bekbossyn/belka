@@ -133,4 +133,9 @@ CARD_NOT_FOUND = {
     "kz": "Карта табылмады",
     "en": "Card not found",
 }
+MOVEMENT_NOT_ALLOWED = {
+    "ru": "Такой ход не разрешен",
+    "kz": "Мұндай жүріс рұқсат етілмеген",
+    "en": "Such movement is not allowed",
+}
 

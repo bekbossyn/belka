@@ -250,47 +250,19 @@ def make_move(request, user):
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     try:
-        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")), room=room, active=True)
+        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")), room=room,
+                                active=True)
         if deck.total_moves > 31:
             return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
 
-    next_move = deck.next_move
-    #   if not queue of the user to make move
-    if (next_move == 1 and user != room.user01) or (next_move == 2 and user != room.user02) or (
-            next_move == 3 and user != room.user03) or (next_move == 4 and user != room.user04):
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
-
-    total_moves = deck.total_moves
-    index = 1
-    try:
-        card_id = int(request.POST.get("card_id") or request.GET.get("card_id"))
-    except ObjectDoesNotExist:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="card_id")
-    hand = None
-    for hand in deck.hands.all():
-        if index == next_move:
-            break
-        index += 1
-    if card_id not in [card.id for card in hand.cards.all()]:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.CARD_NOT_FOUND)
-
-    if hand.cards.get(id=card_id).active is False:
-        #   if card is not active ALREADY.
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
-    if total_moves % 32 == 0:
-        #   if move is first move of current circle of four turns
-        hand.cards.filter(pk=card_id).update(active=False)
-        deck.next_move = next_move + 1
-        deck.save()
-    else:
-        #   TODO get allowed list of cards
-        # allowed_list = hand.cards.all()
-        pass
+    error_message = deck.make_move(request=request, user=user)
+    if error_message:
+        return error_message
 
     return {
-        "deck": hand.json(),
+        "deck": deck.json(),
     }
 
 

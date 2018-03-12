@@ -158,6 +158,94 @@ class Deck(models.Model):
     def __str__(self):
         return u"deck {0} of room {1}".format(self.pk, self.room_id)
 
+    def make_move(self, request, user):
+        """
+            return error_message or
+            returns None, and makes move
+        """
+        from utils import codes, messages, http
+        #   if not queue of the user to make move
+        if (self.next_move == 1 and user != self.room.user01) or (self.next_move == 2 and user != self.room.user02) or (
+                self.next_move == 3 and user != self.room.user03) or (self.next_move == 4 and user != self.room.user04):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
+
+        try:
+            card_id = int(request.POST.get("card_id") or request.GET.get("card_id"))
+        except ObjectDoesNotExist:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.INVALID_PARAMS, field="card_id")
+        hand = None
+        index = 1
+        for hand in self.hands.all():
+            if index == self.next_move:
+                break
+            index += 1
+            if index > 4:
+                return http.code_response(code=codes.SERVER_ERROR, message=messages.INVALID_PARAMS,
+                                          field="index of hands is out of range")
+        if card_id not in [card.id for card in hand.cards.all()]:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.CARD_NOT_FOUND)
+
+        if hand.cards.get(id=card_id).active is False:
+            #   if card is not active ALREADY.
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
+        if self.total_moves >= 32:
+            return http.code_response(code=codes.SERVER_ERROR, message=messages.INVALID_PARAMS,
+                                      field="total_moves of deck is out of range")
+        #   MAIN process
+        if self.total_moves % 32 == 0:
+            #   if move is FIRST MOVE of CURRENT Move consisting of 32 turns
+            #   deactivate previous move histories of deck
+            self.moves.update(active=False)
+            Move.objects.create(deck=self, user=user, card_id=card_id, first_move=True)
+            hand.cards.filter(pk=card_id).update(active=False)
+            self.total_moves = self.total_moves + 1
+            self.next_move = self.next_move % 4 + 1
+            self.save()
+        else:
+            my_card = Card.objects.get(pk=card_id)
+            first_move = self.moves.filter(first_move=True).last()
+            card = Card.objects.get(id=first_move.card_id)
+            allowed_list = self.allowed_list(trumping=card.trump_priority > 0, hand=hand, current_card=card)
+            if my_card not in allowed_list:
+                return http.code_response(code=codes.BAD_REQUEST, message=messages.MOVEMENT_NOT_ALLOWED)
+            if len(allowed_list) == 1:
+                self.moves.update(active=False)
+                Move.objects.create(deck=self, user=user, card_id=card_id, first_move=False)
+                hand.cards.filter(pk=card_id).update(active=False)
+                #   next moves the player who takes 4 cards of current moves
+                self.total_moves = self.total_moves + 1
+                self.next_move = self.generate_next_move()
+                self.save()
+            else:
+                #   TODO get allowed list of cards when there is more that one card.
+                pass
+                # allowed_list = hand.cards.all()
+
+    def generate_next_move(self):
+        if self.total_moves % 4 == 0:
+            #   TODO define who makes move next.
+            pass
+        return self.next_move + 1
+
+    def allowed_list(self, trumping=False, hand=None, current_card=None):
+        jack_values = [110, 210, 310, 410]
+        my_list = list()
+        number_min = current_card.value // 100 * 100
+        number_max = (current_card.value // 100 % 4 + 1) * 100
+        if trumping:
+            cards = hand.cards.filter(active=True, trump_priority__gt=0)
+            #   no trumps
+            if cards.count() == 0:
+                cards = hand.cards.filter(active=True)
+        else:
+            cards = hand.cards.filter(active=True, value__gt=number_min, value__lt=number_max).exclude(value__in=jack_values)
+            #   no cards with such values(нету такой масти)
+            if cards.count() == 0:
+                cards = hand.cards.filter(active=True)
+        for card in cards:
+            my_list.append(card)
+        return my_list
+
     def json(self, active=True):
         return {
             "deck_id": self.pk,
@@ -321,6 +409,34 @@ def card_to_number(trump, suit, card_number):
         card["trump_priority"] = 1 * 1000
     card["active"] = True
     return card
+
+
+class Move(models.Model):
+    """
+        History of moves of each 4 turns of the Deck
+    """
+    deck = models.ForeignKey(Deck, null=False, related_name='moves', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=False, related_name='moves', on_delete=models.CASCADE)
+    card_id = models.IntegerField(default=0)
+    first_move = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return u"MoveHistory {0} of deck {1}".format(self.pk, self.deck_id)
+
+    def json(self, active=True):
+        return {
+            "move_id": self.pk,
+            "user_id": self.user_id,
+            "card_id": self.card_id,
+            "first_move": self.first_move,
+            "active": self.active,
+            "timestamp": dt_to_timestamp(self.timestamp),
+        }
+
+    class Meta:
+        ordering = ['timestamp']
 
 
 class Hand(models.Model):
