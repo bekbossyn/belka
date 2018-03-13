@@ -13,6 +13,19 @@
         {% include "base/navbar.html" with brand_name="Generated hands of NEW DECK" %}
         {% block content %} {% endblock %}
 
+
+        <div class="container">
+            <div class="row">
+                {% for current_card in current_cards %}
+                    <div class="col-1">
+                        <center><p>id:{{ current_card.id }}</p></center>
+                        <img src="{{ current_card.image_url }}" width="150" height="200"/>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+
         <div class="container">
             <center><p>Deck number {{ deck.id }}</p></center>
             <center><p>Trump <b>{{ deck.get_trump_display }}</b></p></center>

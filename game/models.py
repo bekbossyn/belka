@@ -158,6 +158,96 @@ class Deck(models.Model):
     def __str__(self):
         return u"deck {0} of room {1}".format(self.pk, self.room_id)
 
+    def generate_next_move(self):
+        """
+            if total moves are % 4 then we decide who takes the next move
+        """
+        if self.total_moves % 4 == 0:
+            first_card = self.cards.get(movement_index=self.total_moves - 3)
+            current_card = first_card
+            second_card = self.cards.get(movement_index=self.total_moves - 2)
+            third_card = self.cards.get(movement_index=self.total_moves - 1)
+            fourth_card = self.cards.get(movement_index=self.total_moves - 0)
+            value_min = current_card.value // 100 * 100
+            value_max = (current_card.value // 100 + 1) * 100
+            if current_card.trump_priority == 0:
+                #   if trumping
+                if second_card.trump_priority > 0:
+                    #   trump
+                    current_card = second_card
+                else:
+                    #   both not trumps
+                    if value_min < second_card.value < value_max:
+                        #   масть
+                        if current_card.value < second_card.value:
+                            current_card = second_card
+                if third_card.trump_priority > 0:
+                    #   режет третий
+                    if third_card.trump_priority > current_card.trump_priority:
+                        current_card = third_card
+                else:
+                    #   третий не режет
+                    if current_card.trump_priority == 0:
+                        #   если текущий режет
+                        #   both not trumps
+                        if value_min < third_card.value < value_max:
+                            #   если масть
+                            if current_card.value < third_card.value:
+                                current_card = third_card
+                if fourth_card.trump_priority > 0:
+                    #   режет третий
+                    if fourth_card.trump_priority > current_card.trump_priority:
+                        current_card = fourth_card
+                else:
+                    #   третий не режет
+                    if current_card.trump_priority == 0:
+                        #   если текущий режет
+                        #   both not trumps
+                        if value_min < fourth_card.value < value_max:
+                            #   если масть
+                            if current_card.value < fourth_card.value:
+                                current_card = fourth_card
+            else:
+                #   trumping
+                if second_card.trump_priority > current_card.trump_priority:
+                    current_card = second_card
+                if third_card.trump_priority > current_card.trump_priority:
+                    current_card = third_card
+                if fourth_card.trump_priority > current_card.trump_priority:
+                    current_card = fourth_card
+            user_id = self.moves.get(card_id=current_card.id).user.id
+
+            #   кто ходит следующим
+            if user_id == self.room.user01_id:
+                return 1
+            elif user_id == self.room.user02_id:
+                return 2
+            elif user_id == self.room.user03_id:
+                return 3
+            else:
+                return 4
+        else:
+            return self.next_move % 4 + 1
+
+    def allowed_list(self, trumping=False, hand=None, current_card=None):
+        jack_values = [110, 210, 310, 410]
+        my_list = list()
+        value_min = current_card.value // 100 * 100
+        value_max = (current_card.value // 100 + 1) * 100
+        if trumping:
+            cards = hand.cards.filter(active=True, trump_priority__gt=0)
+            #   no trumps
+            if cards.count() == 0:
+                cards = hand.cards.filter(active=True)
+        else:
+            cards = hand.cards.filter(active=True, value__gt=value_min, value__lt=value_max).exclude(value__in=jack_values)
+            #   no cards with such values(нету такой масти)
+            if cards.count() == 0:
+                cards = hand.cards.filter(active=True)
+        for card in cards:
+            my_list.append(card)
+        return my_list
+
     def make_move(self, request, user):
         """
             return error_message or
@@ -192,12 +282,12 @@ class Deck(models.Model):
             return http.code_response(code=codes.SERVER_ERROR, message=messages.INVALID_PARAMS,
                                       field="total_moves of deck is out of range")
         #   MAIN process
-        if self.total_moves % 32 == 0:
+        if self.total_moves % 4 == 0:
             #   if move is FIRST MOVE of CURRENT Move consisting of 32 turns
             #   deactivate previous move histories of deck
             self.moves.update(active=False)
             Move.objects.create(deck=self, user=user, card_id=card_id, first_move=True)
-            hand.cards.filter(pk=card_id).update(active=False)
+            hand.cards.filter(pk=card_id).update(active=False, movement_index=self.total_moves + 1)
             self.total_moves = self.total_moves + 1
             self.next_move = self.next_move % 4 + 1
             self.save()
@@ -208,43 +298,14 @@ class Deck(models.Model):
             allowed_list = self.allowed_list(trumping=card.trump_priority > 0, hand=hand, current_card=card)
             if my_card not in allowed_list:
                 return http.code_response(code=codes.BAD_REQUEST, message=messages.MOVEMENT_NOT_ALLOWED)
-            if len(allowed_list) == 1:
-                self.moves.update(active=False)
-                Move.objects.create(deck=self, user=user, card_id=card_id, first_move=False)
-                hand.cards.filter(pk=card_id).update(active=False)
-                #   next moves the player who takes 4 cards of current moves
-                self.total_moves = self.total_moves + 1
-                self.next_move = self.generate_next_move()
-                self.save()
-            else:
-                #   TODO get allowed list of cards when there is more that one card.
-                pass
-                # allowed_list = hand.cards.all()
-
-    def generate_next_move(self):
-        if self.total_moves % 4 == 0:
-            #   TODO define who makes move next.
-            pass
-        return self.next_move + 1
-
-    def allowed_list(self, trumping=False, hand=None, current_card=None):
-        jack_values = [110, 210, 310, 410]
-        my_list = list()
-        number_min = current_card.value // 100 * 100
-        number_max = (current_card.value // 100 % 4 + 1) * 100
-        if trumping:
-            cards = hand.cards.filter(active=True, trump_priority__gt=0)
-            #   no trumps
-            if cards.count() == 0:
-                cards = hand.cards.filter(active=True)
-        else:
-            cards = hand.cards.filter(active=True, value__gt=number_min, value__lt=number_max).exclude(value__in=jack_values)
-            #   no cards with such values(нету такой масти)
-            if cards.count() == 0:
-                cards = hand.cards.filter(active=True)
-        for card in cards:
-            my_list.append(card)
-        return my_list
+            # if len(allowed_list) == 1:
+            self.moves.update(active=False)
+            Move.objects.create(deck=self, user=user, card_id=card_id, first_move=False)
+            hand.cards.filter(pk=card_id).update(active=False, movement_index=self.total_moves + 1)
+            #   next moves the player who takes 4 cards of current moves
+            self.total_moves = self.total_moves + 1
+            self.next_move = self.generate_next_move()
+            self.save()
 
     def json(self, active=True):
         return {
@@ -371,7 +432,15 @@ def deck_finals(sender, instance, **kwargs):
             bag.remove(bag[random_number])
 
         for i in range(4):
-            hand = Hand.objects.create(deck=instance)
+            if i == 1:
+                user = instance.room.user01
+            elif i == 2:
+                user = instance.room.user02
+            elif i == 3:
+                user = instance.room.user03
+            else:
+                user = instance.room.user04
+            hand = Hand.objects.create(deck=instance, user=user)
             sorted_bag = sort_by_trump(instance.trump, randomized_bag[(i * 8):((i * 8) + 8)])
             for j in range(8):
                 # current_card = randomized_bag[i * 8 + j]
@@ -381,7 +450,7 @@ def deck_finals(sender, instance, **kwargs):
                 worth = current_card["worth"]
                 image_url = current_card["image_url"]
                 trump_priority = current_card["trump_priority"]
-                Card.objects.create(hand=hand, name=name, value=value, worth=worth, image_url=image_url,
+                Card.objects.create(deck=instance, hand=hand, name=name, value=value, worth=worth, image_url=image_url,
                                     trump_priority=trump_priority)
     last = instance.room.decks.last()
     instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
@@ -440,6 +509,7 @@ class Move(models.Model):
 
 
 class Hand(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=False, related_name='hands', on_delete=models.CASCADE)
     deck = models.ForeignKey(Deck, related_name='hands', null=False, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -473,12 +543,14 @@ def hand_initials(sender, instance, **kwargs):
 
 
 class Card(models.Model):
+    deck = models.ForeignKey(Deck, related_name='cards', null=False, on_delete=models.CASCADE)
     hand = models.ForeignKey(Hand, related_name='cards', null=False, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     value = models.PositiveSmallIntegerField(default=0)
     worth = models.PositiveSmallIntegerField(default=0)
     image_url = models.CharField(max_length=100, default="")
     trump_priority = models.PositiveSmallIntegerField(default=0)
+    movement_index = models.PositiveSmallIntegerField(default=0)
 
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
