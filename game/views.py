@@ -31,35 +31,41 @@ def show_visual(request):
     # except
     index = 0
     hand01 = hand02 = hand03 = hand04 = None
-    moves = deck.moves.all()
     my_list = list()
-    for move in moves.reverse():
-        if move.first_move:
-            my_list.append(Card.objects.get(id=move.card_id))
-            # my_list.append(deck.cards.get(deck__moves__card_id=move.card_id))
-            break
-        my_list.append(Card.objects.get(id=move.card_id))
-    current_cards = list()
-    for i in reversed(my_list):
-        current_cards.append(i)
-    for hand in deck.hands.all():
-        index += 1
-        if index == 1:
-            hand01 = hand
-        elif index == 2:
-            hand02 = hand
-        elif index == 3:
-            hand03 = hand
-        elif index == 4:
-            hand04 = hand
-    context = {
-        "deck": deck,
-        "hand01": hand01,
-        "hand02": hand02,
-        "hand03": hand03,
-        "hand04": hand04,
-        "current_cards": current_cards,
-    }
+    if deck:
+        if deck.moves.exists():
+            for move in deck.moves.all().reverse():
+                if move.first_move:
+                    my_list.append(Card.objects.get(id=move.card_id))
+                    # my_list.append(deck.cards.get(deck__moves__card_id=move.card_id))
+                    break
+                my_list.append(Card.objects.get(id=move.card_id))
+            current_cards = list()
+            for i in reversed(my_list):
+                current_cards.append(i)
+        else:
+            current_cards = None
+        for hand in deck.hands.all():
+            index += 1
+            if index == 1:
+                hand01 = hand
+            elif index == 2:
+                hand02 = hand
+            elif index == 3:
+                hand03 = hand
+            elif index == 4:
+                hand04 = hand
+        context = {
+            "deck": deck,
+            "hand01": hand01,
+            "hand02": hand02,
+            "hand03": hand03,
+            "hand04": hand04,
+            "current_cards": current_cards,
+        }
+    else:
+        context = {
+        }
     return render(request, "game/visual.html", context)
 
 
