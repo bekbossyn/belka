@@ -11,12 +11,12 @@ User = get_user_model()
 
 @http.json_response()
 @http.requires_token()
-@http.required_parameters(["user_id"])
+# @http.required_parameters(["user_id"])
 @csrf_exempt
 def info(request, user):
     """
         @apiIgnore
-        @apiDescription Иноформация о Пользователе.
+        @apiDescription Иноформация о Пользователе. user_id not optional
         @api {get} /user/info/ 01. Client Info
         @apiGroup Client
         @apiHeader {String} auth-token Токен авторизации
@@ -24,8 +24,10 @@ def info(request, user):
     """
     try:
         new_user = User.objects.get(pk=int(request.POST.get("user_id") or request.GET.get("user_id")))
-    except ObjectDoesNotExist:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
+    except:
+    # except ObjectDoesNotExist:
+        new_user = user
+    #     return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
     return {
         "user": new_user.json(user=user),
     }
