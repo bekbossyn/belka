@@ -2,7 +2,7 @@ from .settings import *
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'belka_database',
         'USER': 'belka_user',
         'PASSWORD': 'belka_password',
