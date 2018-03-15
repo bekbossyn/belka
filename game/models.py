@@ -229,11 +229,11 @@ class Deck(models.Model):
         else:
             return self.next_move % 4 + 1
 
-    def allowed_list(self, trumping=False, hand=None, current_card=None):
+    def allowed_list(self, trumping=False, hand=None, first_card=None):
         jack_values = [110, 210, 310, 410]
         my_list = list()
-        value_min = current_card.value // 100 * 100
-        value_max = (current_card.value // 100 + 1) * 100
+        value_min = first_card.value // 100 * 100
+        value_max = (first_card.value // 100 + 1) * 100
         if trumping:
             cards = hand.cards.filter(active=True, trump_priority__gt=0)
             #   no trumps
@@ -294,8 +294,8 @@ class Deck(models.Model):
         else:
             my_card = Card.objects.get(pk=card_id)
             first_move = self.moves.filter(first_move=True).last()
-            card = Card.objects.get(id=first_move.card_id)
-            allowed_list = self.allowed_list(trumping=card.trump_priority > 0, hand=hand, current_card=card)
+            first_card = Card.objects.get(id=first_move.card_id)
+            allowed_list = self.allowed_list(trumping=first_card.trump_priority > 0, hand=hand, first_card=first_card)
             if my_card not in allowed_list:
                 return http.code_response(code=codes.BAD_REQUEST, message=messages.MOVEMENT_NOT_ALLOWED)
             # if len(allowed_list) == 1:
@@ -432,11 +432,11 @@ def deck_finals(sender, instance, **kwargs):
             bag.remove(bag[random_number])
 
         for i in range(4):
-            if i == 1:
+            if i == 0:
                 user = instance.room.user01
-            elif i == 2:
+            elif i == 1:
                 user = instance.room.user02
-            elif i == 3:
+            elif i == 2:
                 user = instance.room.user03
             else:
                 user = instance.room.user04

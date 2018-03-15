@@ -278,5 +278,49 @@ def make_move(request, user):
     }
 
 
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["room_id", "deck_id"])
+@csrf_exempt
+def get_allowed(request, user):
+    try:
+        room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), active=True)
+        if not room.inside(user):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    try:
+        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")), room=room,
+                                active=True)
+        if deck.total_moves > 31:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+
+    hand = None
+    index = 1
+    for hand in deck.hands.all():
+        if index == deck.next_move:
+            break
+        index += 1
+        if index > 4:
+            return http.code_response(code=codes.SERVER_ERROR, message=messages.INVALID_PARAMS,
+                                      field="index of hands is out of range")
+    if hand.user != user:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
+
+    if deck.total_moves % 4 == 0:
+        #   first move
+        allowed_cards = [card.json() for card in hand.cards.filter(active=True)]
+    else:
+        #   not first movement
+        first_move = deck.moves.filter(first_move=True).last()
+        first_card = Card.objects.get(id=first_move.card_id)
+        allowed_cards = [card.json() for card in
+                         deck.allowed_list(trumping=first_card.trump_priority > 0, hand=hand, first_card=first_card)]
+
+    return {
+        "allowed_cards": allowed_cards,
+    }
 
 
