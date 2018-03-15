@@ -12,7 +12,7 @@ DATABASES = {
 }
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/dev/static/'
-MEDIA_ROOT = '/home/dev/media/'
+STATIC_ROOT = '/root/static/'
+MEDIA_ROOT = '/root/media/'
 
-SITE_URL = 'http://188.166.81.158'
+SITE_URL = 'http://159.65.203.197'
