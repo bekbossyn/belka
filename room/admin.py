@@ -7,7 +7,7 @@ from .models import Deck, Hand, Card, Room, Move
 class RoomAdmin(admin.ModelAdmin):
     list_display = (
         'pk', 'owner', 'user01', 'user01_ready', 'user02', 'user02_ready', 'user03', 'user03_ready', 'user04',
-        'user04_ready', 'all_ready', 'started', 'full', 'active', 'timestamp',)
+        'user04_ready', 'all_ready', 'has_jack_of_clubs', 'trump_is_hidden', 'started', 'full', 'active', 'timestamp',)
 
     list_filter = ('owner', 'started', 'full', 'active',)
 
