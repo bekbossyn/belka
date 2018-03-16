@@ -32,3 +32,5 @@ class GameSetting(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
+
