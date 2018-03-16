@@ -37,7 +37,6 @@ def show_visual(request):
             for move in deck.moves.all().reverse():
                 if move.first_move:
                     my_list.append(Card.objects.get(id=move.card_id))
-                    # my_list.append(deck.cards.get(deck__moves__card_id=move.card_id))
                     break
                 my_list.append(Card.objects.get(id=move.card_id))
             current_cards = list()
@@ -94,7 +93,7 @@ def create(request, user):
 @csrf_exempt
 def enter(request, user):
     try:
-        room = Room.objects.get(pk=int(request.POST.get("room_id")),  active=True)
+        room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")),  active=True)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     is_full, free_place = room.is_full()
@@ -132,7 +131,7 @@ def enter(request, user):
 @csrf_exempt
 def leave(request, user):
     try:
-        room_id = int(request.POST.get("room_id"))
+        room_id = int(request.POST.get("room_id") or request.GET.get("room_id"))
         room = Room.objects.filter(
             Q(pk=room_id, user01=user, active=True) | Q(pk=room_id, user02=user, active=True) | Q(pk=room_id, user03=user, active=True) | Q(pk=room_id, user04=user, active=True)).last()
         if room is None:
@@ -191,7 +190,7 @@ def remove_user(request, user):
 @csrf_exempt
 def ready(request, user):
     try:
-        room_id = int(request.POST.get("room_id"))
+        room_id = int(request.POST.get("room_id") or request.GET.get("room_id"))
         room = Room.objects.filter(
             Q(pk=room_id, user01=user, active=True) | Q(pk=room_id, user02=user, active=True) | Q(pk=room_id, user03=user, active=True) | Q(pk=room_id, user04=user, active=True)).last()
         if room is None:
@@ -223,7 +222,7 @@ def ready(request, user):
 @csrf_exempt
 def create_deck(request, user):
     try:
-        room = Room.objects.get(pk=int(request.POST.get("room_id")), owner=user, active=True)
+        room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), owner=user, active=True)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
     trump = int(request.POST.get("trump") or request.GET.get("trump"))
