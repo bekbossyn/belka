@@ -17,21 +17,18 @@ class GameSetting(models.Model):
         return u"Game setting {0} of user {1}".format(self.pk, self.owner_id)
 
     def json(self, user=None):
-        if user == self.owner:
-            return {
-                "setting_id": self.pk,
-                "user_id": self.owner_id,
-                "on_save": self.on_save,
-                "on_save_display": self.get_on_save_display(),
-                "on_full": self.on_full,
-                "on_full_display": self.get_on_full_display(),
-                "ace_allowed": self.ace_allowed,
-                "on_eggs": self.on_eggs,
-                "on_eggs_display": self.get_on_eggs_display(),
-                "timestamp": dt_to_timestamp(self.timestamp),
-            }
-        else:
-            return None
+        return {
+            "setting_id": self.pk,
+            "user_id": self.owner_id,
+            "on_save": self.on_save,
+            "on_save_display": self.get_on_save_display(),
+            "on_full": self.on_full,
+            "on_full_display": self.get_on_full_display(),
+            "ace_allowed": self.ace_allowed,
+            "on_eggs": self.on_eggs,
+            "on_eggs_display": self.get_on_eggs_display(),
+            "timestamp": dt_to_timestamp(self.timestamp),
+        }
 
     class Meta:
         ordering = ['timestamp']
