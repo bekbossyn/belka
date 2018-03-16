@@ -8,7 +8,8 @@ from django.dispatch import receiver
 
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
-    MOVES_QUEUE, TRUMP_PRIORITY_JACK
+    MOVES_QUEUE, TRUMP_PRIORITY_JACK, DIAMONDS_VALUE, ACE_OF_CLUBS_VALUE, ACE_OF_SPADES_VALUE, ACE_OF_HEARTS_VALUE, \
+    ACE_OF_DIAMONDS_VALUE
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
@@ -127,10 +128,19 @@ def room_update(sender, instance, **kwargs):
 
 
 class Deck(models.Model):
+    """
+        Deck is the game, the loaded cards of each game of the room.
+    """
     room = models.ForeignKey(Room, related_name='decks', null=False, on_delete=models.CASCADE)
     trump = models.PositiveSmallIntegerField(choices=SUITS, default=CLUBS_VALUE)
     next_move = models.PositiveSmallIntegerField(choices=MOVES_QUEUE, default=INITIAL_PLAYER_INDEX)
     total_moves = models.PositiveSmallIntegerField(default=0)
+    clubs = models.BooleanField(default=False)
+    spades = models.BooleanField(default=False)
+    hearts = models.BooleanField(default=False)
+    diamonds = models.BooleanField(default=False)
+    total_team01 = models.PositiveSmallIntegerField(default=0)
+    total_team02 = models.PositiveSmallIntegerField(default=0)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -141,12 +151,14 @@ class Deck(models.Model):
         """
             if total moves are % 4 then we decide who takes the next move
         """
+        team_total_deck = 0
         if self.total_moves % 4 == 0:
             first_card = self.cards.get(movement_index=self.total_moves - 3)
             current_card = first_card
             second_card = self.cards.get(movement_index=self.total_moves - 2)
             third_card = self.cards.get(movement_index=self.total_moves - 1)
             fourth_card = self.cards.get(movement_index=self.total_moves - 0)
+            team_total_deck = first_card.worth + second_card.worth + third_card.worth + fourth_card.worth
             value_min = current_card.value // 100 * 100
             value_max = (current_card.value // 100 + 1) * 100
             if current_card.trump_priority == 0:
@@ -198,12 +210,16 @@ class Deck(models.Model):
 
             #   кто ходит следующим
             if user_id == self.room.user01_id:
+                self.total_team01 += team_total_deck
                 return 1
             elif user_id == self.room.user02_id:
+                self.total_team02 += team_total_deck
                 return 2
             elif user_id == self.room.user03_id:
+                self.total_team01 += team_total_deck
                 return 3
             else:
+                self.total_team02 += team_total_deck
                 return 4
         else:
             return self.next_move % 4 + 1
@@ -213,16 +229,30 @@ class Deck(models.Model):
         my_list = list()
         value_min = first_card.value // 100 * 100
         value_max = (first_card.value // 100 + 1) * 100
+        kwargs_exclude = dict()
+        value__in = list()
+        if not self.room.owner.game_setting.ace_allowed:
+            if not self.clubs:
+                value__in.append(ACE_OF_CLUBS_VALUE)
+            if not self.spades:
+                value__in.append(ACE_OF_SPADES_VALUE)
+            if not self.hearts:
+                value__in.append(ACE_OF_HEARTS_VALUE)
+            if not self.diamonds:
+                value__in.append(ACE_OF_DIAMONDS_VALUE)
+        if len(value__in) > 0:
+            kwargs_exclude["value__in"] = value__in
         if trumping:
             cards = hand.cards.filter(active=True, trump_priority__gt=0)
             #   no trumps
             if cards.count() == 0:
-                cards = hand.cards.filter(active=True)
+                cards = hand.cards.filter(active=True).exclude(**kwargs_exclude)
         else:
-            cards = hand.cards.filter(active=True, value__gt=value_min, value__lt=value_max).exclude(value__in=jack_values)
+            cards = hand.cards.filter(active=True, value__gt=value_min, value__lt=value_max).exclude(
+                value__in=jack_values).exclude(**kwargs_exclude)
             #   no cards with such values(нету такой масти)
             if cards.count() == 0:
-                cards = hand.cards.filter(active=True)
+                cards = hand.cards.filter(active=True).exclude(**kwargs_exclude)
         for card in cards:
             my_list.append(card)
         return my_list
@@ -276,7 +306,7 @@ class Deck(models.Model):
             first_card = Card.objects.get(id=first_move.card_id)
             allowed_list = self.allowed_list(trumping=first_card.trump_priority > 0, hand=hand, first_card=first_card)
             if my_card not in allowed_list:
-                return http.code_response(code=codes.BAD_REQUEST, message=messages.MOVEMENT_NOT_ALLOWED)
+                return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
             # if len(allowed_list) == 1:
             self.moves.update(active=False)
             Move.objects.create(deck=self, user=user, card_id=card_id, first_move=False)
@@ -293,6 +323,8 @@ class Deck(models.Model):
             "hands": [hand.json(active=active) for hand in self.hands.filter(active=active)],
             "next_move": self.next_move,
             "total_moves": self.total_moves,
+            "total_team01": self.total_team01,
+            "total_team02": self.total_team02,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
         }
@@ -396,12 +428,24 @@ def deck_finals(sender, instance, **kwargs):
     """
         creates the deck with random hands and cards.
         deactivates all the decks of the room except last created
+        also creates the trump according to the room's has_jack_of_clubs value
     """
+    #   TODO if total moves == 32:
+    #   TODO count, hands, count room, finished or not, create next deck, if not finished.
+    trump = -1
+    last = instance.room.decks.last()
+    #   NOT the beginning.
+    if instance.room.has_jack_of_clubs != 0:
+        #   define new trump.
+        pass
+    else:
+        trump = 1
     if instance.hands.count() == 0:
         bag = list()
         for suit in SUITS:
             for card_number in CARD_NUMBERS:
-                bag.append(card_to_number(instance.trump, suit, card_number))
+                # bag.append(card_to_number(instance.trump, suit, card_number))
+                bag.append(card_to_number(trump, suit, card_number))   #   at the beginning the trump is unknown
         randomized_bag = list()
         while len(bag):
             #   a <= n <= b
@@ -409,6 +453,29 @@ def deck_finals(sender, instance, **kwargs):
             random_number = random.randint(0, len(bag) - 1)
             randomized_bag.append(bag[random_number])
             bag.remove(bag[random_number])
+        #   search the jack_of_clubs    for defining trump
+        if trump == -1:
+            for i in range(4):
+                hand = randomized_bag[(i * 8):((i * 8) + 8)]
+                for card in hand:
+                    if card["trump_priority"] == TRUMP_PRIORITY_JACK * 40:
+                        if (i + 1) == instance.room.has_jack_of_clubs:
+                            trump = 1
+                        elif (i + 1) % 2 == instance.room.has_jack_of_clubs % 2:
+                            trump = 2
+                        elif (instance.room.has_jack_of_clubs % 4 + 1) == (i + 1):
+                            trump = 3
+                        else:
+                            trump = 4
+                        break
+            #   setting current trump
+            instance.room.decks.filter(pk=last.pk).update(trump=trump)
+            for card in randomized_bag:
+                if card["value"] // 100 == trump:
+                    for card_number in CARD_NUMBERS:
+                        if card["value"] % 100 == card_number[0]:
+                            card["trump_priority"] = card_number[2]
+                            break
 
         for i in range(4):
             if i == 0:
@@ -420,8 +487,8 @@ def deck_finals(sender, instance, **kwargs):
             else:
                 user = instance.room.user04
             hand = Hand.objects.create(deck=instance, user=user)
-            sorted_bag = sort_by_trump(instance.trump, randomized_bag[(i * 8):((i * 8) + 8)])
-            for j in range(8):
+            sorted_bag = sort_by_trump(trump, randomized_bag[(i * 8):((i * 8) + 8)])
+            for j in range(len(sorted_bag)):
                 # current_card = randomized_bag[i * 8 + j]
                 current_card = sorted_bag[j]
                 name = current_card["name"]
@@ -432,9 +499,31 @@ def deck_finals(sender, instance, **kwargs):
                 Card.objects.create(deck=instance, hand=hand, name=name, value=value, worth=worth, image_url=image_url,
                                     trump_priority=trump_priority)
                 #   has the FIRST
-                if trump_priority == TRUMP_PRIORITY_JACK * 40:
-                    instance.room.has_jack_of_clubs = i
-    last = instance.room.decks.last()
+                if trump_priority == TRUMP_PRIORITY_JACK * 40 and instance.room.trump_is_hidden:
+                    instance.room.has_jack_of_clubs = i + 1
+    #   if not the first game, trump is not hidden.
+    instance.room.trump_is_hidden = instance.room.decks.count() == 0
+
+    #   setting ace allowed
+    if instance.trump == CLUBS_VALUE:
+        instance.clubs = True
+    elif instance.trump == SPADES_VALUE:
+        instance.spades = True
+    elif instance.trump == HEARTS_VALUE:
+        instance.hearts = True
+    elif instance.trump == DIAMONDS_VALUE:
+        instance.diamonds = True
+    if instance.room.owner.game_setting.ace_allowed:
+        instance.clubs = True
+        instance.spades = True
+        instance.hearts = True
+        instance.diamonds = True
+    #   in order to avoid infinite recursion in post saving method.
+    instance.room.decks.filter(pk=last.pk).update(clubs=instance.clubs,
+                                                  spades=instance.spades,
+                                                  hearts=instance.hearts,
+                                                  diamonds=instance.diamonds)
+
     instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
 
 
