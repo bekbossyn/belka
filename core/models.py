@@ -8,7 +8,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from room.models import GameSetting
+from user.models import GameSetting
 from . import tasks
 from utils.constants import HIDE_LAST, LANGUAGES, RUSSIAN
 from utils.image_utils import get_url
