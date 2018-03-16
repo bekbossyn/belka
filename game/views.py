@@ -324,3 +324,14 @@ def get_allowed(request, user):
     }
 
 
+@http.json_response()
+@http.requires_token()
+# @http.required_parameters(["room_id", "deck_id"])
+@csrf_exempt
+def active_rooms(request, user):
+    rooms = Room.objects.filter(active=True)
+
+    return {
+        "rooms_list": [room.list_json() for room in rooms],
+    }
+

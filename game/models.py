@@ -87,6 +87,14 @@ class Room(models.Model):
             "last_deck": self.decks.filter(active=True).last().json() if self.decks.count() > 0 else None,
         }
 
+    def list_json(self):
+        return {
+            "room_id": self.pk,
+            "timestamp": dt_to_timestamp(self.timestamp),
+            "setting": self.owner.game_setting.json(),
+            "started": self.started,
+        }
+
     class Meta:
         ordering = ['timestamp']
 

@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^room/leave/$', views.leave_room, name='leave_room'),
     url(r'^room/remove/$', views.remove_user, name='remove_user'),
     url(r'^room/ready/$', views.ready, name='ready'),
+    url(r'^room/active/$', views.active_rooms, name='active_rooms'),
     url(r'^room/deck/show_visual/$', views.show_visual, name='show_visual'),
     url(r'^room/deck/create/$', views.create_deck, name='create_deck'),
     url(r'^room/deck/make_move/$', views.make_move, name='make_move'),
