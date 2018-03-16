@@ -30,6 +30,7 @@
             <center><p>Deck number {{ deck.id }}</p></center>
             <center><p>Trump <b>{{ deck.get_trump_display }}</b></p></center>
             <div class="row">
+                <b>{{ hand01.user.name }}</b>
                 {% for card in hand01.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
