@@ -5,5 +5,5 @@ def hajime(request):
     context = {
 
         }
-    return render(request, "hajime.html", context)
+    return render(request, "music.html", context)
 
