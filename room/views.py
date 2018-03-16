@@ -329,7 +329,7 @@ def get_allowed(request, user):
 # @http.required_parameters(["room_id", "deck_id"])
 @csrf_exempt
 def all_rooms(request, user):
-    rooms = Room.objects.filter(active=True)
+    rooms = Room.objects.filter(active=True, started=False)
 
     return {
         "rooms_list": [room.list_json() for room in rooms],
