@@ -38,7 +38,7 @@
                 <center><p>Next move: <b>{{ hand04.user.name }}</b></p></center>
             {% endif %}
             <center><p>Trump <b>{{ deck.get_trump_display }}</b></p></center>
-            <b>{{ hand01.user.name }}</b>
+            <b>{{ hand01.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand01.cards.all %}
                     {% if card.active %}
@@ -52,7 +52,7 @@
 
             <hr/>
 
-            <b>{{ hand02.user.name }}</b>
+            <b>{{ hand02.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand02.cards.all %}
                     {% if card.active %}
@@ -66,7 +66,7 @@
 
             <hr/>
 
-            <b>{{ hand03.user.name }}</b>
+            <b>{{ hand03.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand03.cards.all %}
                     {% if card.active %}
@@ -80,7 +80,7 @@
 
             <hr/>
 
-            <b>{{ hand04.user.name }}</b>
+            <b>{{ hand04.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand04.cards.all %}
                     {% if card.active %}
