@@ -1,0 +1,35 @@
+{% load static %}
+<!doctype html>
+    <html lang="en">
+      <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Hajime</title>
+        {% block base_head %} {% endblock %}
+      </head>
+      <body>
+{#        {% include "base/navbar.html" with brand_name="Generated hands of NEW DECK" %}#}
+
+        <center>
+            <div class="row">
+                <div class="col-1">
+                    <h1>Hajime</h1>
+                    <audio controls>
+                      <source src="/media/audio/hajime.mp3" type="audio/ogg">
+                    Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-1">
+                    <center>
+                        <img src="https://in.bookmyshow.com/entertainment-news/wp-content/uploads/2017/12/Bruce-Lee.jpg"/>
+                    </center>
+                </div>
+            </div>
+        </center>
+
+        {% include "base/js.html" %}
+      </body>
+    </html>
