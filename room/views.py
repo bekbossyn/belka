@@ -168,6 +168,8 @@ def remove_user(request, user):
             return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
     except ObjectDoesNotExist:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    if room.started:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTION_NOT_ALLOWED)
     if room.user02 == new_user:
         room.user02 = None
     elif room.user03 == new_user:
