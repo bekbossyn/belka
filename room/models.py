@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
-    MOVES_QUEUE
+    MOVES_QUEUE, TRUMP_PRIORITY_JACK
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
@@ -23,6 +23,8 @@ class Room(models.Model):
     user03_ready = models.BooleanField(default=False)
     user04 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user04', on_delete=models.CASCADE)
     user04_ready = models.BooleanField(default=False)
+    has_jack_of_clubs = models.PositiveSmallIntegerField(default=0)
+    trump_is_hidden = models.BooleanField(default=True)
     all_ready = models.BooleanField(default=False)
     started = models.BooleanField(default=False)
     full = models.BooleanField(default=False)
@@ -75,6 +77,8 @@ class Room(models.Model):
             "user04_id": self.user04_id,
             "user04_ready": self.user04_ready,
             "all_ready": self.all_ready,
+            "has_jack_of_clubs": self.has_jack_of_clubs,
+            "trump_is_hidden": self.trump_is_hidden,
             "full": self.full,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
@@ -427,6 +431,9 @@ def deck_finals(sender, instance, **kwargs):
                 trump_priority = current_card["trump_priority"]
                 Card.objects.create(deck=instance, hand=hand, name=name, value=value, worth=worth, image_url=image_url,
                                     trump_priority=trump_priority)
+                #   has the FIRST
+                if trump_priority == TRUMP_PRIORITY_JACK * 40:
+                    instance.room.has_jack_of_clubs = i
     last = instance.room.decks.last()
     instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
 
