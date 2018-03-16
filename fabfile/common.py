@@ -31,7 +31,7 @@ def update_supervisor():
 @task
 def update():
     """
-    Restarts server
+    Restarts the server
     """
     run("cd /root/belka/ && . ./run.sh")
     sudo("systemctl restart gunicorn")
