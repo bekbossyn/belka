@@ -29,17 +29,17 @@
         <div class="container">
             <center><p>Deck number {{ deck.id }}</p></center>
             {% if deck.next_move == 1 %}
-                <center><p>Next move: {{ hand01.user.name }}</p></center>
+                <center><p>Next move: <b>{{ hand01.user.name }}</b></p></center>
             {% elif deck.next_move == 2 %}
-                <center><p>Next move: {{ hand02.user.name }}</p></center>
+                <center><p>Next move: <b>{{ hand02.user.name }}</b></p></center>
             {% elif deck.next_move == 3 %}
-                <center><p>Next move: {{ hand03.user.name }}</p></center>
+                <center><p>Next move: <b>{{ hand03.user.name }}</b></p></center>
             {% elif deck.next_move == 4 %}
-                <center><p>Next move: {{ hand04.user.name }}</p></center>
+                <center><p>Next move: <b>{{ hand04.user.name }}</b></p></center>
             {% endif %}
             <center><p>Trump <b>{{ deck.get_trump_display }}</b></p></center>
+            <b>{{ hand01.user.name }}</b>
             <div class="row">
-                <b>{{ hand01.user.name }}</b>
                 {% for card in hand01.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
@@ -52,8 +52,8 @@
 
             <hr/>
 
+            <b>{{ hand02.user.name }}</b>
             <div class="row">
-                <b>{{ hand02.user.name }}</b>
                 {% for card in hand02.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
@@ -66,8 +66,8 @@
 
             <hr/>
 
+            <b>{{ hand03.user.name }}</b>
             <div class="row">
-                <b>{{ hand03.user.name }}</b>
                 {% for card in hand03.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
@@ -80,8 +80,8 @@
 
             <hr/>
 
+            <b>{{ hand04.user.name }}</b>
             <div class="row">
-                <b>{{ hand04.user.name }}</b>
                 {% for card in hand04.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
