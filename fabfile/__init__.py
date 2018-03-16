@@ -2,7 +2,6 @@ from . import common
 
 from fabric.state import env
 from fabric.decorators import task
-from fabric.operations import sudo, run
 
 env.repository = "https://github.com/bekbossyn/belka.git"
 env.repo_name = "belka"
@@ -31,15 +30,7 @@ env.password = "Truesight7"
 # @hosts(['159.65.203.197'])
 def restart():
     """
-        updates repo, restarts the server
+        updates the repo, restarts the server
     """
-    # env.hosts = ["159.65.203.197"]
-    # env.user = "root"
-    # env.password = "Truesight7"
-
-    run("cd /root/belka && git pull origin master")
-
-    run("cd /root/belka/ && . ./run.sh")
-    sudo("systemctl restart gunicorn")
-    sudo("systemctl restart nginx")
-    common.update_supervisor()
+    common.git_pull()
+    common.update()
