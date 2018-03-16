@@ -13,10 +13,6 @@ from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
 
-# class Game(models.Model):
-#     pass
-
-
 class Room(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='rooms', null=False, on_delete=models.CASCADE)
     user01 = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='user01', on_delete=models.CASCADE)

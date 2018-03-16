@@ -79,7 +79,7 @@ def different_users(user01, user02, user03, user04):
 @http.json_response()
 @http.requires_token()
 @csrf_exempt
-def create_room(request, user):
+def create(request, user):
     if user.rooms.filter(active=True).count() > 0:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTIVE_ROOM_EXISTS)
     room = Room.objects.create(owner=user, user01=user)
@@ -92,7 +92,7 @@ def create_room(request, user):
 @http.requires_token()
 @http.required_parameters(["room_id"])
 @csrf_exempt
-def enter_room(request, user):
+def enter(request, user):
     try:
         room = Room.objects.get(pk=int(request.POST.get("room_id")),  active=True)
     except ObjectDoesNotExist:
@@ -130,7 +130,7 @@ def enter_room(request, user):
 @http.requires_token()
 @http.required_parameters(["room_id"])
 @csrf_exempt
-def leave_room(request, user):
+def leave(request, user):
     try:
         room_id = int(request.POST.get("room_id"))
         room = Room.objects.filter(
@@ -328,7 +328,7 @@ def get_allowed(request, user):
 @http.requires_token()
 # @http.required_parameters(["room_id", "deck_id"])
 @csrf_exempt
-def active_rooms(request, user):
+def all_rooms(request, user):
     rooms = Room.objects.filter(active=True)
 
     return {

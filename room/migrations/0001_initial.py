@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('active', models.BooleanField(default=True)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('deck', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hands', to='game.Deck')),
+                ('deck', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hands', to='room.Deck')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hands', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
                 ('first_move', models.BooleanField(default=False)),
                 ('active', models.BooleanField(default=True)),
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('deck', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='moves', to='game.Deck')),
+                ('deck', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='moves', to='room.Deck')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='moves', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -114,16 +114,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='deck',
             name='room',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='decks', to='game.Room'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='decks', to='room.Room'),
         ),
         migrations.AddField(
             model_name='card',
             name='deck',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cards', to='game.Deck'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cards', to='room.Deck'),
         ),
         migrations.AddField(
             model_name='card',
             name='hand',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cards', to='game.Hand'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cards', to='room.Hand'),
         ),
     ]

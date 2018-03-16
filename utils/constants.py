@@ -51,7 +51,7 @@ TEAMS = (
 
 MATCH_NAME = u'match'
 
-GAME_NAME = u'game'
+ROOM_NAME = u'room'
 
 SEVEN = 7
 SEVEN_WORTH = 0

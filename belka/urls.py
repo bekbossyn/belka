@@ -21,7 +21,7 @@ from . import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/game/', include('game.urls', namespace='game')),
+    path('api/room/', include('room.urls', namespace='room')),
     path('api/auth/', include('core.urls', namespace='core')),
     path('api/user/', include('user.urls', namespace='user')),
 ]
