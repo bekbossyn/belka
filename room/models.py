@@ -153,6 +153,9 @@ class Deck(models.Model):
         """
         team_total_deck = 0
         if self.total_moves % 4 == 0:
+            #   if it is the end of deck
+            if self.total_moves == 32:
+                self.next_move = self.room.decks.count() % 4 + 1
             first_card = self.cards.get(movement_index=self.total_moves - 3)
             current_card = first_card
             second_card = self.cards.get(movement_index=self.total_moves - 2)
@@ -209,6 +212,7 @@ class Deck(models.Model):
             user_id = self.moves.get(card_id=current_card.id).user.id
 
             #   кто ходит следующим
+            #   сумма набранных очков командой
             if user_id == self.room.user01_id:
                 self.total_team01 += team_total_deck
                 return 1
