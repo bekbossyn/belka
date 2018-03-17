@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
     MOVES_QUEUE, TRUMP_PRIORITY_JACK, DIAMONDS_VALUE, ACE_OF_CLUBS_VALUE, ACE_OF_SPADES_VALUE, ACE_OF_HEARTS_VALUE, \
-    ACE_OF_DIAMONDS_VALUE
+    ACE_OF_DIAMONDS_VALUE, TEAM_TOTAL_MAX_LOCAL
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
@@ -29,6 +29,9 @@ class Room(models.Model):
     all_ready = models.BooleanField(default=False)
     started = models.BooleanField(default=False)
     full = models.BooleanField(default=False)
+    total_team01 = models.PositiveSmallIntegerField(default=0)
+    total_team02 = models.PositiveSmallIntegerField(default=0)
+    previous_eggs = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -81,6 +84,8 @@ class Room(models.Model):
             "has_jack_of_clubs": self.has_jack_of_clubs,
             "trump_is_hidden": self.trump_is_hidden,
             "full": self.full,
+            "total_team01": self.total_team01,
+            "total_team02": self.total_team02,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
             "setting": self.owner.game_setting.json(),
@@ -529,6 +534,53 @@ def deck_finals(sender, instance, **kwargs):
                                                   diamonds=instance.diamonds)
 
     instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
+    #   Если козырь в начале был
+    if instance.room.has_jack_of_clubs % 2 == 0:
+        team01 = [2, 4]
+        team02 = [1, 3]
+    else:
+        team01 = [1, 3]
+        team02 = [2, 4]
+    if instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
+        if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL:
+            #   голая реализована командой 01
+            #   TODO team total for FULL
+            pass
+        elif instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
+            #   голая реализована командой 02
+            #   TODO team total for FULL
+            pass
+        elif instance.total_team01 < instance.room.owner.game_setting.on_save:
+            #   TODO команда team01 не набрала спас
+            if instance.room.has_jack_of_clubs in team01:
+                instance.room.total_team02 += 3
+            else:
+                instance.room.total_team02 += 2
+        elif instance.total_team02 < instance.room.owner.game_setting.on_save:
+            #   TODO команда team02 не набрала спас
+            if instance.room.has_jack_of_clubs in team02:
+                instance.room.total_team01 += 3
+            else:
+                instance.room.total_team01 += 2
+        else:
+            #   TODO команды набрали произвольные очки
+            #   TODO команда team01 набрала больше
+            if instance.total_team01 > instance.total_team02:
+                if instance.room.has_jack_of_clubs in team01:
+                    instance.room.total_team01 += 1
+                else:
+                    instance.room.total_team01 += 2
+            elif instance.total_team01 < instance.total_team02:
+                #   TODO команда team02 набрала больше
+                if instance.room.has_jack_of_clubs in team02:
+                    instance.room.total_team02 += 1
+                else:
+                    instance.room.total_team02 += 2
+            else:
+                #   TODO ЯЙЦА
+                instance.room.previous_eggs = True
+                #   TODO create deck to play eggs
+                pass
 
 
 def card_to_number(trump, suit, card_number):
