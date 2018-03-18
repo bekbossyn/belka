@@ -279,7 +279,7 @@ def make_move(request, user):
         return error_message
 
     return {
-        "deck": deck.json(),
+        "deck": room.decks.last().json(),
     }
 
 

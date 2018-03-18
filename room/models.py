@@ -598,7 +598,6 @@ def deck_finals(sender, instance, **kwargs):
             deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=instance.next_move)
 
 
-
 def card_to_number(trump, suit, card_number):
     card = dict()
     card["value"] = suit[0] * 100 + card_number[0]
