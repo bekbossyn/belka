@@ -61,6 +61,10 @@ def show_visual(request):
             "hand03": hand03,
             "hand04": hand04,
             "current_cards": current_cards,
+            "team01_local_total": deck.total_team01,
+            "team02_local_total": deck.total_team02,
+            "team01_total": deck.room.total_team01,
+            "team02_total": deck.room.total_team02,
         }
     else:
         context = {

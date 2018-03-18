@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
     MOVES_QUEUE, TRUMP_PRIORITY_JACK, DIAMONDS_VALUE, ACE_OF_CLUBS_VALUE, ACE_OF_SPADES_VALUE, ACE_OF_HEARTS_VALUE, \
-    ACE_OF_DIAMONDS_VALUE, TEAM_TOTAL_MAX_LOCAL
+    ACE_OF_DIAMONDS_VALUE, TEAM_TOTAL_MAX_LOCAL, TEAM_TOTAL_MAX
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
@@ -554,33 +554,49 @@ def deck_finals(sender, instance, **kwargs):
             #   TODO команда team01 не набрала спас
             if instance.room.has_jack_of_clubs in team01:
                 instance.room.total_team02 += 3
+                instance.room.save()
             else:
                 instance.room.total_team02 += 2
+                instance.room.save()
         elif instance.total_team02 < instance.room.owner.game_setting.on_save:
             #   TODO команда team02 не набрала спас
             if instance.room.has_jack_of_clubs in team02:
                 instance.room.total_team01 += 3
+                instance.room.save()
             else:
                 instance.room.total_team01 += 2
+                instance.room.save()
         else:
             #   TODO команды набрали произвольные очки
             #   TODO команда team01 набрала больше
             if instance.total_team01 > instance.total_team02:
                 if instance.room.has_jack_of_clubs in team01:
                     instance.room.total_team01 += 1
+                    instance.room.save()
                 else:
                     instance.room.total_team01 += 2
+                    instance.room.save()
             elif instance.total_team01 < instance.total_team02:
                 #   TODO команда team02 набрала больше
                 if instance.room.has_jack_of_clubs in team02:
                     instance.room.total_team02 += 1
+                    instance.room.save()
                 else:
                     instance.room.total_team02 += 2
+                    instance.room.save()
             else:
                 #   TODO ЯЙЦА
                 instance.room.previous_eggs = True
                 #   TODO create deck to play eggs
                 pass
+        if instance.room.total_team01 >= TEAM_TOTAL_MAX or instance.room.total_team02 >= TEAM_TOTAL_MAX:
+            #   TODO Закончить игру
+            pass
+        else:
+            instance.room.decks.filter(active=True).update(active=False)
+            #   create new deck
+            deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=instance.next_move)
+
 
 
 def card_to_number(trump, suit, card_number):

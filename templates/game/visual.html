@@ -13,6 +13,39 @@
         {% include "base/navbar.html" with brand_name="Generated hands of NEW DECK" %}
         {% block content %} {% endblock %}
 
+        <div class="container">
+            <div class="row">
+                <div class="col-2">
+                    <p>team01 total: </p>
+                </div>
+                <div class="col-1">
+                    <b>{{ team01_total }}</b>
+                </div>
+                <div class="col-2">
+                    <p>team02 total: </p>
+                </div>
+                <div class="col-1">
+                    <b>{{ team02_total }}</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-2">
+                    <p>team01 local total: </p>
+                </div>
+                <div class="col-1">
+                    <b>{{ team01_local_total }}</b>
+                </div>
+                <div class="col-2">
+                    <p>team02 local total: </p>
+                </div>
+                <div class="col-1">
+                    <b>{{ team02_local_total }}</b>
+                </div>
+            </div>
+        </div>
 
         <div class="container">
             <div class="row">
