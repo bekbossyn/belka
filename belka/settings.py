@@ -97,9 +97,9 @@ WSGI_APPLICATION = 'belka.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('DB_NAME', 'test_belka'),
-        'USER': os.environ.get('DB_USER', 'test_belka_user'),
-        'PASSWORD': os.environ.get('DB_PASS', 'test_belka_password'),
+        'NAME': os.environ.get('DB_NAME', 'belka_database'),
+        'USER': os.environ.get('DB_USER', 'belka_user'),
+        'PASSWORD': os.environ.get('DB_PASS', 'belka_password'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', 5432),
     }
