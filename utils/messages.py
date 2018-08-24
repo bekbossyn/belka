@@ -63,6 +63,11 @@ PHONE_ALREADY_EXISTS = {
     "kz": "Телефон нөмірі алдын тіркелген",
     "en": "User with such phone already exists",
 }
+PHONE_OR_EMAIL_REQUIRED = {
+    "ru": "Нужен номер телефона или почта",
+    "kz": "Телефон нөмірі немесе пошта қажет",
+    "en": "Phone or email is needed",
+}
 MISSING_TOKEN = {
     "ru": "Системная ошибка. Токен отсутствует",
     "kz": "Жүйелік қате. Токен жоқ",
@@ -72,6 +77,31 @@ INVALID_TOKEN = {
     "ru": "Системная ошибка. Неверный токен",
     "kz": "Жүйелік қате. Қате токен",
     "en": "System error. Invalid token",
+}
+INVALID_SOCIAL_TOKEN = {
+    "ru": "Системная ошибка. Неверный социальный токен",
+    "kz": "Жүйелік қате. Қате социалды токен",
+    "en": "System error. Invalid social token",
+}
+INVALID_FB_TOKEN = {
+    "ru": "Системная ошибка. Неверный фэйсбук токен",
+    "kz": "Жүйелік қате. Қате фэйсбук токен",
+    "en": "System error. Invalid facebook token",
+}
+INVALID_INSTA_TOKEN = {
+    "ru": "Системная ошибка. Неверный инста токен",
+    "kz": "Жүйелік қате. Қате инста токен",
+    "en": "System error. Invalid insta token",
+}
+INVALID_GOOGLE_TOKEN = {
+    "ru": "Системная ошибка. Неверный гугл токен",
+    "kz": "Жүйелік қате. Қате гугл токен",
+    "en": "System error. Invalid google token",
+}
+INVALID_VK_TOKEN = {
+    "ru": "Системная ошибка. Неверный вк токен",
+    "kz": "Жүйелік қате. Қате вк токен",
+    "en": "System error. Invalid vk token",
 }
 WRONG_PHONE_FORMAT = {
     "ru": "Неверный номер телефона",

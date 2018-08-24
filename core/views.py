@@ -116,7 +116,7 @@ def get_social_info(access_token, social_type):
             result['avatar_url'] = info.get('picture')
             return result, None
     return None, http.code_response(code=codes.BAD_REQUEST,
-                                    message=messages.SOCIAL_TOKEN_INVALID)
+                                    message=messages.INVALID_SOCIAL_TOKEN)
 
 
 @http.json_response()
@@ -716,10 +716,10 @@ def facebook_login(request):
 
     if info is None:
         return http.code_response(code=codes.BAD_REQUEST,
-                                  message=messages.FB_OAUTH_TOKEN_INVALID)
+                                  message=messages.INVALID_FB_TOKEN)
     if 'id' not in info:
         return http.code_response(code=codes.BAD_REQUEST,
-                                  message=messages.FB_OAUTH_TOKEN_INVALID)
+                                  message=messages.INVALID_FB_TOKEN)
 
     full_name = info.get('name', None)
     email = info.get('email', None)
@@ -746,10 +746,10 @@ def insta_login(request):
 
     if info is None:
         return http.code_response(code=codes.BAD_REQUEST,
-                                  message=messages.INSTA_TOKEN_INVALID)
+                                  message=messages.INVALID_INSTA_TOKEN)
     if 'data' not in info:
         return http.code_response(code=codes.BAD_REQUEST,
-                                  message=messages.INSTA_TOKEN_INVALID)
+                                  message=messages.INVALID_INSTA_TOKEN)
 
     full_name = info['data'].get('full_name', None)
     insta_id = info['data']['id']
@@ -776,7 +776,7 @@ def google_login(request):
 
     if info is None:
         return http.code_response(code=codes.BAD_REQUEST,
-                                  message=messages.GOOGLE_TOKEN_INVALID)
+                                  message=messages.INVALID_GOOGLE_TOKEN)
     email = info.get('email')
     phone = info.get('phone')
     full_name = info.get('name')
@@ -802,7 +802,7 @@ def vk_login(request):
 
     if info is None or 'error' in info:
         return http.code_response(code=codes.BAD_REQUEST,
-                                  message=messages.VK_TOKEN_INVALID,
+                                  message=messages.INVALID_VK_TOKEN,
                                   error=info['error'])
     info = info['response'][0]
     vk_id = info['id']
