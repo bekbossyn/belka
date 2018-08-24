@@ -24,9 +24,9 @@ from . import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', views.hajime, name='hajime'),
-    path('api/room/', include('room.urls', namespace='room')),
-    path('api/auth/', include('core.urls', namespace='core')),
-    path('api/user/', include('user.urls', namespace='user')),
+    path('api/v1/room/', include('room.urls', namespace='room')),
+    path('api/v1/auth/', include('core.urls', namespace='core')),
+    path('api/v1/user/', include('user.urls', namespace='user')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
