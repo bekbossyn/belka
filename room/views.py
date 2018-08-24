@@ -15,8 +15,10 @@ from utils.constants import SUITS
 User = get_user_model()
 
 
+@http.json_response()
 def test(request):
-    return HttpResponse("<h1>test</h1>")
+    return {}
+    # return HttpResponse("<h1>test</h1>")
 
 
 @csrf_exempt
