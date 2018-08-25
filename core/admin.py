@@ -18,6 +18,7 @@ class MainUserAdmin(UserAdmin):
         # 'insta_id',
         # 'vk_id',
         'name',
+        'last_login',
         # 'country',
         'is_active',
         'is_admin',
