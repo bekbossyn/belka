@@ -17,6 +17,11 @@ def create_token(user, remove_others=False):
     :param user: User for which token should be created.
     :return: authentication token.
     """
+
+    #TODO Temporary, delete at production.
+    # In order for a definite user to sign in from different devices.
+    remove_others = False
+
     info = {
         'id': user.id,
         'timestamp': time.time()
