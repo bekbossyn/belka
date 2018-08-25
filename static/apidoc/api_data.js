@@ -819,55 +819,6 @@ define({ "api": [
     ]
   },
   {
-    "description": "<p>Авторизация через email или номер телефона</p>",
-    "group": "01__Auth",
-    "type": "post",
-    "url": "/auth/signin/",
-    "title": "05. Вход в систему [sign_in]",
-    "name": "Sign_in",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "username",
-            "description": "<p>email or phone</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "password",
-            "description": "<p>Password</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "result",
-            "description": "<p>Json</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "./core/views.py",
-    "groupTitle": "01__Auth",
-    "sampleRequest": [
-      {
-        "url": "http://localhost:8000/api/v1/auth/signin/"
-      }
-    ]
-  },
-  {
     "description": "<p>Вход с помощью аккаунта Фэйсбук <br>С помощью <code>access_token</code> выполняется аутентификация пользователя</p>",
     "type": "post",
     "url": "/auth/facebook_login/",
@@ -1032,6 +983,55 @@ define({ "api": [
     "sampleRequest": [
       {
         "url": "http://localhost:8000/api/v1/auth/vk_login/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Авторизация через <code>email</code> или <code>номер телефона</code></p>",
+    "group": "01__Core",
+    "type": "post",
+    "url": "/core/sign_in/",
+    "title": "01. Вход в систему [sign_in]",
+    "name": "Sign_in",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>email or phone number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>Password</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./core/views.py",
+    "groupTitle": "01__Core",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/core/sign_in/"
       }
     ]
   },

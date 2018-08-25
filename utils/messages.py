@@ -113,10 +113,10 @@ WRONG_PASSWORD = {
     "kz": "Құпиясөз қате",
     "en": "Wrong password",
 }
-WRONG_PHONE_OR_PASSWORD = {
-    "ru": "Неверный номер телефона или пароль",
-    "kz": "Телефон нөмірі немесе құпиясөз қате",
-    "en": "Wrong phone number or password",
+WRONG_LOGIN_OR_PASSWORD = {
+    "ru": "Неверный логин или пароль",
+    "kz": "Логин немесе құпиясөз қате",
+    "en": "Wrong login or password",
 }
 EMAIL_HAS_BEEN_SENT = {
     "ru": "Письмо с кодом подтверждения было отправлено на Вашу почту",

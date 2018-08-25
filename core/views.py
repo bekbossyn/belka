@@ -15,11 +15,11 @@ User = get_user_model()
 def sign_in(request):
     """
     @apiDescription Вход с помощью номера телефона/почты/социальной сети и пароля.
-    @apiGroup 01. Auth
-    @api {post} /auth/signin/ 05. Вход в систему [sign_in]
+    @apiGroup 01. Core
+    @api {post} /core/sign_in/ 01. Вход в систему [sign_in]
     @apiName Sign in
-    @apiDescription Авторизация через email или номер телефона
-    @apiParam {String} username email or phone
+    @apiDescription Авторизация через `email` или `номер телефона`
+    @apiParam {String} username email or phone number
     @apiParam {String} password Password
     @apiSuccess {json} result Json
     """
@@ -36,7 +36,7 @@ def sign_in(request):
             'user': user.json(user=user)
         }
     return http.code_response(code=codes.BAD_REQUEST,
-                              message=messages.WRONG_PHONE_OR_PASSWORD)
+                              message=messages.WRONG_LOGIN_OR_PASSWORD)
 
 
 def email_sign_up(email, password):
