@@ -147,3 +147,22 @@ def remove_avatar(request, user):
     return {
         "user": user.json(user=user),
     }
+
+
+@http.json_response()
+@http.requires_token()
+@csrf_exempt
+def list_users(request, user):
+    """
+        @apiIgnore
+        @apiDescription Иноформация о Пользователе. user_id not optional
+        @api {get} /user/info/ 01. Client Info
+        @apiGroup Client
+        @apiHeader {String} auth-token Токен авторизации
+        @apiSuccess {json} result Json
+    """
+    users = [new_user.json(user=user) for new_user in User.objects.all().exclude(is_admin=True)]
+    return {
+        "list": users,
+    }
+
