@@ -675,6 +675,35 @@ define({ "api": [
     ]
   },
   {
+    "description": "<p>Вход в комнату <br>Тестирование простого метода <code>post</code></p>",
+    "type": "post",
+    "url": "/room/enter/",
+    "title": "02. Вход в комнату [enter_room]",
+    "group": "02__Room",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "02__Room",
+    "name": "PostRoomEnter",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/enter/"
+      }
+    ]
+  },
+  {
     "success": {
       "fields": {
         "Success 200": [

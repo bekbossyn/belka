@@ -104,7 +104,14 @@ def create(request, user):
 @http.requires_token()
 @http.required_parameters(["room_id"])
 @csrf_exempt
-def enter(request, user):
+def enter_room(request, user):
+    """
+        @apiDescription Вход в комнату
+        <br>Тестирование простого метода `post`
+        @api {post} /room/enter/ 02. Вход в комнату [enter_room]
+        @apiGroup 02. Room
+        @apiSuccess {json} result Json
+    """
     try:
         room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")),  active=True)
     except ObjectDoesNotExist:
