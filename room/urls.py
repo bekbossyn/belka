@@ -13,9 +13,9 @@ urlpatterns = [
     url(r'^remove_user/$', views.remove_user, name='remove_user'),
     url(r'^ready/$', views.ready, name='ready'),
     url(r'^deck/create/$', views.create_deck, name='create_deck'),
-    url(r'^deck/make_move/$', views.make_move, name='make_move'),
-    url(r'^deck/allowed/$', views.get_allowed, name='get_allowed'),
     url(r'^deck/show/$', views.show_deck, name='show_deck'),
+    url(r'^deck/allowed/$', views.get_allowed, name='get_allowed'),
+    url(r'^deck/make_move/$', views.make_move, name='make_move'),
     # url(r'^start/$', views.start_game, name='start_game'),
     url(r'^all/$', views.all_rooms, name='all_rooms'),
 ]

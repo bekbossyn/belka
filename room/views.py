@@ -21,7 +21,7 @@ def test(request):
         @apiDescription Тест
         <br>Тестирование простого метода `GET`
         @api {get} /room/test/ 01. Тест [test]
-        @apiGroup 02. Room
+        @apiGroup 03. Room
         @apiSuccess {json} result Json
     """
     return {}
@@ -96,7 +96,7 @@ def create_room(request, user):
         @apiDescription Создание комнаты
         <br>Создание комнаты. Метод `post`
         @api {post} /room/create/ 02. Создание комнаты [create_room]
-        @apiGroup 02. Room
+        @apiGroup 03. Room
         @apiHeader {String} auth-token Токен авторизации
         @apiSuccess {json} result Json
     """
@@ -116,7 +116,7 @@ def enter_room(request, user):
     """
         @apiDescription Вход в комнату
         @api {post} /room/enter/ 03. Вход в комнату [enter_room]
-        @apiGroup 02. Room
+        @apiGroup 03. Room
         @apiHeader {String} auth-token Токен авторизации
         @apiParam {integer} room_id Room id
         @apiSuccess {json} result Json
@@ -163,7 +163,7 @@ def leave_room(request, user):
         @apiDescription Покинуть комнату
         <br>Вход в комнату с id room_id
         @api {post} /room/leave/ 04. Покинуть комнату [leave_room]
-        @apiGroup 02. Room
+        @apiGroup 03. Room
         @apiHeader {String} auth-token Токен авторизации
         @apiParam {integer} room_id Room id
         @apiSuccess {json} result Json
@@ -203,7 +203,7 @@ def remove_user(request, user):
         @apiDescription Удалить игрока
         <br>Удалить игрока из комнаты с id `user_id`
         @api {post} /room/remove_user/ 05. Удалить игрока [remove_user]
-        @apiGroup 02. Room
+        @apiGroup 03. Room
         @apiHeader {String} auth-token Токен авторизации
         @apiParam {integer} user_id User id
         @apiSuccess {json} result Json
@@ -242,7 +242,7 @@ def ready(request, user):
         @apiDescription Готов
         <br>Нажатие кнопки ГОТОВ
         @api {post} /room/ready/ 06. Готов [ready]
-        @apiGroup 02. Room
+        @apiGroup 03. Room
         @apiHeader {String} auth-token Токен авторизации
         @apiParam {integer} room_id Room id
         @apiSuccess {json} result Json
@@ -279,6 +279,16 @@ def ready(request, user):
 @http.required_parameters(["room_id", "trump"])
 @csrf_exempt
 def create_deck(request, user):
+    """
+        @apiDescription Создать колоду
+        <br>Создать колоду в комнате с id `room_id` и козырем `trump`
+        @api {post} /room/deck/create/ 07. Создать комнату [create_deck]
+        @apiGroup 03. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} room_id Room id
+        @apiParam {integer} trump Trump
+        @apiSuccess {json} result Json
+    """
     try:
         room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), owner=user, active=True)
     except ObjectDoesNotExist:
@@ -297,6 +307,15 @@ def create_deck(request, user):
 @http.required_parameters(["deck_id"])
 @csrf_exempt
 def show_deck(request, user):
+    """
+        @apiDescription Показать колоду
+        <br>Показать колоду с id `deck_id`. Можно просматривать БЕЗ авторизации
+        @api {post} /room/deck/show/ 08. Показать колоду [show_deck]
+        @apiGroup 03. Room
+        @apiHeader {String} [auth-token] Токен авторизации
+        @apiParam {integer} deck_id Deck id
+        @apiSuccess {json} result Json
+    """
     deck_id = int(request.POST.get("deck_id") or request.GET.get("deck_id"))
     try:
         deck = Deck.objects.get(pk=deck_id, active=True)
@@ -309,37 +328,19 @@ def show_deck(request, user):
 
 @http.json_response()
 @http.requires_token()
-@http.required_parameters(["room_id", "deck_id", "card_id"])
-@csrf_exempt
-def make_move(request, user):
-    try:
-        room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), active=True)
-        if not room.inside(user):
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
-    except ObjectDoesNotExist:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
-    try:
-        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")), room=room,
-                                active=True)
-        if deck.total_moves > 31:
-            return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
-    except ObjectDoesNotExist:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
-
-    error_message = deck.make_move(request=request, user=user)
-    if error_message:
-        return error_message
-
-    return {
-        "deck": room.decks.last().json(),
-    }
-
-
-@http.json_response()
-@http.requires_token()
 @http.required_parameters(["room_id", "deck_id"])
 @csrf_exempt
 def get_allowed(request, user):
+    """
+        @apiDescription Показать список разрешенных карт для хода
+        <br>Показать список разрешенных карт в комнате с id `room_id` в колоде с id `deck_id`
+        @api {post} /room/deck/allowed/ 09. Показать список разрешенных карт [get_allowed]
+        @apiGroup 03. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} room_id Room id
+        @apiParam {integer} deck_id Deck id
+        @apiSuccess {json} result Json
+    """
     try:
         room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), active=True)
         if not room.inside(user):
@@ -383,9 +384,56 @@ def get_allowed(request, user):
 
 @http.json_response()
 @http.requires_token()
+@http.required_parameters(["room_id", "deck_id", "card_id"])
+@csrf_exempt
+def make_move(request, user):
+    """
+        @apiDescription Сделать ХОД
+        <br>Сделать ход картой с id `card_id` из списка разрешенных карт в комнате с id `room_id` в колоде с id `deck_id`
+        @api {post} /room/deck/make_move/ 10. Сделать ХОД [make_move]
+        @apiGroup 03. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} room_id Room id
+        @apiParam {integer} deck_id Deck id
+        @apiParam {integer} card_id Card id
+        @apiSuccess {json} result Json
+    """
+    try:
+        room = Room.objects.get(pk=int(request.POST.get("room_id") or request.GET.get("room_id")), active=True)
+        if not room.inside(user):
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.ROOM_NOT_FOUND)
+    try:
+        deck = Deck.objects.get(pk=(request.POST.get("deck_id") or request.GET.get("deck_id")), room=room,
+                                active=True)
+        if deck.total_moves > 31:
+            return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+    except ObjectDoesNotExist:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.DECK_NOT_FOUND)
+
+    error_message = deck.make_move(request=request, user=user)
+    if error_message:
+        return error_message
+
+    return {
+        "deck": room.decks.last().json(),
+    }
+
+
+@http.json_response()
+@http.requires_token()
 # @http.required_parameters(["room_id", "deck_id"])
 @csrf_exempt
 def all_rooms(request, user):
+    """
+        @apiDescription Список всех активных комнат
+        <br>Список всех активных комнат
+        @api {get} /room/all/ 11. Список всех активных комнат [all_rooms]
+        @apiGroup 03. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiSuccess {json} result Json
+    """
     rooms = Room.objects.filter(active=True, started=False)
 
     return {

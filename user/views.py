@@ -15,11 +15,11 @@ User = get_user_model()
 @csrf_exempt
 def info(request, user):
     """
-        @apiIgnore
-        @apiDescription Иноформация о Пользователе. user_id not optional
-        @api {get} /user/info/ 01. Client Info
-        @apiGroup Client
+        @apiDescription Информация о Пользователе. user_id is optional
+        @api {get} /user/info/ 01. Информация о Пользователе
+        @apiGroup 02. User
         @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} [user_id] User id
         @apiSuccess {json} result Json
     """
     try:
@@ -38,20 +38,16 @@ def info(request, user):
 @csrf_exempt
 def update_profile(request, user):
     """
-        @apiIgnore
         @apiDescription Обновить профиль.
-        @api {post} /client/update_profile/ 04. Update profile
-        @apiGroup Client
+        @api {post} /user/update_profile/ 02. Обновить профиль
+        @apiGroup 02. User
         @apiHeader {String} auth-token Токен авторизации
         @apiParam {String} [name] Name
-        @apiParam {String} [description] Description
-        @apiParam {String} [job] Job
-        @apiParam {String} [education] Education
-        @apiParam {Date} [birthday] Birthday
-        @apiParam {Number{0=NONE,1=MALE,2=FEMALE}} [gender] Gender
-        @apiParam {String} [country] Country
-        @apiParam {String} [contact_number] Contact Number
-        @apiParam {String} [address] Address [Место проживания]
+        @apiParam {Integer} [language] Language {RUSSIAN = 1, KAZAKH = 2, ENGLISH = 3}
+        @apiParam {Integer} [on_save] On Save {ON_SAVE_SUM_30 = 30, ON_SAVE_SUM_31 = 31}
+        @apiParam {Integer} [on_full] On Full {ON_FULL_OPEN_FOUR = 1, ON_FULL_FINISH_GAME = 2}
+        @apiParam {Boolean} [ace_allowed] Ace allowed {True, False}
+        @apiParam {Integer} [on_eggs] On eggs {ON_EGGS_OPEN_FOUR = 1, ON_EGGS_OPEN_DOUBLE = 2}
 
         @apiSuccess {json} result Json
     """
@@ -111,10 +107,9 @@ def update_profile(request, user):
 @csrf_exempt
 def update_avatar(request, user):
     """
-        @apiIgnore
-        @apiDescription Загрузка аватара.
-        @api {post} /client/upload_avatar/ 02. Upload avatar
-        @apiGroup Client
+        @apiDescription Обновить аватар.
+        @api {post} /user/update_avatar/ 03. Обновить аватар
+        @apiGroup 02. User
         @apiHeader {String} auth-token Токен авторизации
         @apiParam {File} avatar Файл изображения
         @apiSuccess {json} result Json
@@ -133,12 +128,10 @@ def update_avatar(request, user):
 @csrf_exempt
 def remove_avatar(request, user):
     """
-        @apiIgnore
-        @apiDescription Загрузка аватара.
-        @api {post} /client/upload_avatar/ 02. Upload avatar
-        @apiGroup Client
+        @apiDescription Удалить аватар.
+        @api {post} /user/remove_avatar/ 04. Удалить аватар
+        @apiGroup 02. User
         @apiHeader {String} auth-token Токен авторизации
-        @apiParam {File} avatar Файл изображения
         @apiSuccess {json} result Json
     """
     user.avatar = None
@@ -154,10 +147,9 @@ def remove_avatar(request, user):
 @csrf_exempt
 def list_users(request, user):
     """
-        @apiIgnore
-        @apiDescription Иноформация о Пользователе. user_id not optional
-        @api {get} /user/info/ 01. Client Info
-        @apiGroup Client
+        @apiDescription Список всех пользователей.
+        @api {post} /user/list_users/ 05. Список пользователей
+        @apiGroup 02. User
         @apiHeader {String} auth-token Токен авторизации
         @apiSuccess {json} result Json
     """

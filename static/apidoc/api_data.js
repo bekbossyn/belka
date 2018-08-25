@@ -646,11 +646,308 @@ define({ "api": [
     ]
   },
   {
-    "description": "<p>Тест <br>Тестирование простого метода <code>GET</code></p>",
+    "description": "<p>Информация о Пользователе. user_id is optional</p>",
     "type": "get",
-    "url": "/room/test/",
-    "title": "01. Тест [test]",
-    "group": "02__Room",
+    "url": "/user/info/",
+    "title": "01. Информация о Пользователе",
+    "group": "02__User",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": true,
+            "field": "user_id",
+            "description": "<p>User id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./user/views.py",
+    "groupTitle": "02__User",
+    "name": "GetUserInfo",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/user/info/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Список всех пользователей.</p>",
+    "type": "post",
+    "url": "/user/list_users/",
+    "title": "05. Список пользователей",
+    "group": "02__User",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./user/views.py",
+    "groupTitle": "02__User",
+    "name": "PostUserList_users",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/user/list_users/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Удалить аватар.</p>",
+    "type": "post",
+    "url": "/user/remove_avatar/",
+    "title": "04. Удалить аватар",
+    "group": "02__User",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./user/views.py",
+    "groupTitle": "02__User",
+    "name": "PostUserRemove_avatar",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/user/remove_avatar/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Обновить аватар.</p>",
+    "type": "post",
+    "url": "/user/update_avatar/",
+    "title": "03. Обновить аватар",
+    "group": "02__User",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "File",
+            "optional": false,
+            "field": "avatar",
+            "description": "<p>Файл изображения</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./user/views.py",
+    "groupTitle": "02__User",
+    "name": "PostUserUpdate_avatar",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/user/update_avatar/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Обновить профиль.</p>",
+    "type": "post",
+    "url": "/user/update_profile/",
+    "title": "02. Обновить профиль",
+    "group": "02__User",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "name",
+            "description": "<p>Name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Integer",
+            "optional": true,
+            "field": "language",
+            "description": "<p>Language {RUSSIAN = 1, KAZAKH = 2, ENGLISH = 3}</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Integer",
+            "optional": true,
+            "field": "on_save",
+            "description": "<p>On Save {ON_SAVE_SUM_30 = 30, ON_SAVE_SUM_31 = 31}</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Integer",
+            "optional": true,
+            "field": "on_full",
+            "description": "<p>On Full {ON_FULL_OPEN_FOUR = 1, ON_FULL_FINISH_GAME = 2}</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "ace_allowed",
+            "description": "<p>Ace allowed {True, False}</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Integer",
+            "optional": true,
+            "field": "on_eggs",
+            "description": "<p>On eggs {ON_EGGS_OPEN_FOUR = 1, ON_EGGS_OPEN_DOUBLE = 2}</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./user/views.py",
+    "groupTitle": "02__User",
+    "name": "PostUserUpdate_profile",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/user/update_profile/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Список всех активных комнат <br>Список всех активных комнат</p>",
+    "type": "get",
+    "url": "/room/all/",
+    "title": "11. Список всех активных комнат [all_rooms]",
+    "group": "03__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
     "success": {
       "fields": {
         "Success 200": [
@@ -666,7 +963,36 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./room/views.py",
-    "groupTitle": "02__Room",
+    "groupTitle": "03__Room",
+    "name": "GetRoomAll",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/all/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Тест <br>Тестирование простого метода <code>GET</code></p>",
+    "type": "get",
+    "url": "/room/test/",
+    "title": "01. Тест [test]",
+    "group": "03__Room",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "03__Room",
     "name": "GetRoomTest",
     "sampleRequest": [
       {
@@ -679,7 +1005,7 @@ define({ "api": [
     "type": "post",
     "url": "/room/create/",
     "title": "02. Создание комнаты [create_room]",
-    "group": "02__Room",
+    "group": "03__Room",
     "header": {
       "fields": {
         "Header": [
@@ -708,7 +1034,7 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./room/views.py",
-    "groupTitle": "02__Room",
+    "groupTitle": "03__Room",
     "name": "PostRoomCreate",
     "sampleRequest": [
       {
@@ -717,11 +1043,259 @@ define({ "api": [
     ]
   },
   {
+    "description": "<p>Показать список разрешенных карт для хода <br>Показать список разрешенных карт в комнате с id <code>room_id</code> в колоде с id <code>deck_id</code></p>",
+    "type": "post",
+    "url": "/room/deck/allowed/",
+    "title": "09. Показать список разрешенных карт [get_allowed]",
+    "group": "03__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "room_id",
+            "description": "<p>Room id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "deck_id",
+            "description": "<p>Deck id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "03__Room",
+    "name": "PostRoomDeckAllowed",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/deck/allowed/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Создать колоду <br>Создать колоду в комнате с id <code>room_id</code> и козырем <code>trump</code></p>",
+    "type": "post",
+    "url": "/room/deck/create/",
+    "title": "07. Создать комнату [create_deck]",
+    "group": "03__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "room_id",
+            "description": "<p>Room id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "trump",
+            "description": "<p>Trump</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "03__Room",
+    "name": "PostRoomDeckCreate",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/deck/create/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Сделать ХОД <br>Сделать ход картой с id <code>card_id</code> из списка разрешенных карт в комнате с id <code>room_id</code> в колоде с id <code>deck_id</code></p>",
+    "type": "post",
+    "url": "/room/deck/make_move/",
+    "title": "10. Сделать ХОД [make_move]",
+    "group": "03__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "room_id",
+            "description": "<p>Room id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "deck_id",
+            "description": "<p>Deck id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "card_id",
+            "description": "<p>Card id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "03__Room",
+    "name": "PostRoomDeckMake_move",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/deck/make_move/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Показать колоду <br>Показать колоду с id <code>deck_id</code>. Можно просматривать БЕЗ авторизации</p>",
+    "type": "post",
+    "url": "/room/deck/show/",
+    "title": "08. Показать колоду [show_deck]",
+    "group": "03__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": true,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "deck_id",
+            "description": "<p>Deck id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "03__Room",
+    "name": "PostRoomDeckShow",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/deck/show/"
+      }
+    ]
+  },
+  {
     "description": "<p>Вход в комнату</p>",
     "type": "post",
     "url": "/room/enter/",
     "title": "03. Вход в комнату [enter_room]",
-    "group": "02__Room",
+    "group": "03__Room",
     "header": {
       "fields": {
         "Header": [
@@ -763,7 +1337,7 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./room/views.py",
-    "groupTitle": "02__Room",
+    "groupTitle": "03__Room",
     "name": "PostRoomEnter",
     "sampleRequest": [
       {
@@ -776,7 +1350,7 @@ define({ "api": [
     "type": "post",
     "url": "/room/leave/",
     "title": "04. Покинуть комнату [leave_room]",
-    "group": "02__Room",
+    "group": "03__Room",
     "header": {
       "fields": {
         "Header": [
@@ -818,7 +1392,7 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./room/views.py",
-    "groupTitle": "02__Room",
+    "groupTitle": "03__Room",
     "name": "PostRoomLeave",
     "sampleRequest": [
       {
@@ -831,7 +1405,7 @@ define({ "api": [
     "type": "post",
     "url": "/room/ready/",
     "title": "06. Готов [ready]",
-    "group": "02__Room",
+    "group": "03__Room",
     "header": {
       "fields": {
         "Header": [
@@ -873,7 +1447,7 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./room/views.py",
-    "groupTitle": "02__Room",
+    "groupTitle": "03__Room",
     "name": "PostRoomReady",
     "sampleRequest": [
       {
@@ -886,7 +1460,7 @@ define({ "api": [
     "type": "post",
     "url": "/room/remove_user/",
     "title": "05. Удалить игрока [remove_user]",
-    "group": "02__Room",
+    "group": "03__Room",
     "header": {
       "fields": {
         "Header": [
@@ -928,7 +1502,7 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "./room/views.py",
-    "groupTitle": "02__Room",
+    "groupTitle": "03__Room",
     "name": "PostRoomRemove_user",
     "sampleRequest": [
       {
