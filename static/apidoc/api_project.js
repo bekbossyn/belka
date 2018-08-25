@@ -1,15 +1,15 @@
 define({
-  "name": "Belka",
+  "name": "belka_v1",
   "version": "0.0.1",
-  "description": "Api",
-  "title": "Belka Documentation",
-  "url": "http://localhost/api",
-  "sampleUrl": "http://localhost/api",
+  "description": "api",
+  "title": "belka_v1 documentation",
+  "url": "http://localhost:8000/api/v1",
+  "sampleUrl": "http://localhost:8000/api/v1",
   "defaultVersion": "0.0.0",
   "apidoc": "0.3.0",
   "generator": {
     "name": "apidoc",
-    "time": "2018-03-09T06:16:25.145Z",
+    "time": "2018-08-25T07:30:33.734Z",
     "url": "http://apidocjs.com",
     "version": "0.17.6"
   }

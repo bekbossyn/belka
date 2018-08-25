@@ -17,6 +17,13 @@ User = get_user_model()
 
 @http.json_response()
 def test(request):
+    """
+    @apiDescription Тест
+    <br>Тестирование простого метода `GET`
+    @api {get} /room/test/ 01. Тест [test]
+    @apiGroup 02. Room
+    @apiSuccess {json} result Json
+    """
     return {}
     # return HttpResponse("<h1>test</h1>")
 

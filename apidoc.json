@@ -1,8 +1,8 @@
 {
-  "name": "Belka",
+  "name": "belka_v1",
   "version": "0.0.1",
-  "description": "Api",
-  "title": "Belka Documentation",
-  "url" : "http://localhost/api",
-  "sampleUrl": "http://localhost/api"
+  "description": "api",
+  "title": "belka_v1 documentation",
+  "url" : "http://localhost:8000/api/v1",
+  "sampleUrl": "http://localhost:8000/api/v1"
 }

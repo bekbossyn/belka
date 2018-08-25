@@ -57,7 +57,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/change_password/"
+        "url": "http://localhost:8000/api/v1/auth/change_password/"
       }
     ]
   },
@@ -112,7 +112,7 @@
     "name": "PostAuthChange_email",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/change_email/"
+        "url": "http://localhost:8000/api/v1/auth/change_email/"
       }
     ]
   },
@@ -174,7 +174,7 @@
     "name": "PostAuthChange_email_complete",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/change_email_complete/"
+        "url": "http://localhost:8000/api/v1/auth/change_email_complete/"
       }
     ]
   },
@@ -229,7 +229,7 @@
     "name": "PostAuthChange_phone",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/change_phone/"
+        "url": "http://localhost:8000/api/v1/auth/change_phone/"
       }
     ]
   },
@@ -291,7 +291,7 @@
     "name": "PostAuthChange_phone_complete",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/change_phone_complete/"
+        "url": "http://localhost:8000/api/v1/auth/change_phone_complete/"
       }
     ]
   },
@@ -340,7 +340,7 @@
     "name": "PostAuthReset_email_password",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/reset_email_password/"
+        "url": "http://localhost:8000/api/v1/auth/reset_email_password/"
       }
     ]
   },
@@ -389,7 +389,7 @@
     "name": "PostAuthReset_email_password_complete",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/reset_email_password_complete/"
+        "url": "http://localhost:8000/api/v1/auth/reset_email_password_complete/"
       }
     ]
   },
@@ -438,7 +438,7 @@
     "name": "PostAuthReset_password",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/reset_password/"
+        "url": "http://localhost:8000/api/v1/auth/reset_password/"
       }
     ]
   },
@@ -487,7 +487,7 @@
     "name": "PostAuthReset_password_complete",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/reset_password_complete/"
+        "url": "http://localhost:8000/api/v1/auth/reset_password_complete/"
       }
     ]
   },
@@ -637,7 +637,7 @@
     "name": "PostAuthSign_upSocial",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/sign_up/social/"
+        "url": "http://localhost:8000/api/v1/auth/sign_up/social/"
       }
     ]
   },
@@ -765,7 +765,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/sign_up/"
+        "url": "http://localhost:8000/api/v1/auth/sign_up/"
       }
     ]
   },
@@ -814,7 +814,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/sign_up_complete/"
+        "url": "http://localhost:8000/api/v1/auth/sign_up_complete/"
       }
     ]
   },
@@ -863,7 +863,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/signin/"
+        "url": "http://localhost:8000/api/v1/auth/signin/"
       }
     ]
   },
@@ -905,7 +905,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/facebook_login/"
+        "url": "http://localhost:8000/api/v1/auth/facebook_login/"
       }
     ]
   },
@@ -947,7 +947,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/google_login/"
+        "url": "http://localhost:8000/api/v1/auth/google_login/"
       }
     ]
   },
@@ -989,7 +989,7 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/insta_login/"
+        "url": "http://localhost:8000/api/v1/auth/insta_login/"
       }
     ]
   },
@@ -1031,7 +1031,36 @@
     "groupTitle": "01__Auth",
     "sampleRequest": [
       {
-        "url": "http://localhost/api/auth/vk_login/"
+        "url": "http://localhost:8000/api/v1/auth/vk_login/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Тест <br>Тестирование простого метода <code>GET</code></p>",
+    "type": "get",
+    "url": "/room/test/",
+    "title": "01. Тест [test]",
+    "group": "02__Room",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "02__Room",
+    "name": "GetRoomTest",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/test/"
       }
     ]
   },
@@ -1059,8 +1088,8 @@
     "url": "",
     "version": "0.0.0",
     "filename": "./static/apidoc/main.js",
-    "group": "_home_asus_workspace_belka_static_apidoc_main_js",
-    "groupTitle": "_home_asus_workspace_belka_static_apidoc_main_js",
+    "group": "_home_msi_dev_projects_belka_v1_static_apidoc_main_js",
+    "groupTitle": "_home_msi_dev_projects_belka_v1_static_apidoc_main_js",
     "name": ""
   }
 ]
