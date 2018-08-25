@@ -36,7 +36,7 @@ def sign_in(request):
             'user': user.json(user=user)
         }
     return http.code_response(code=codes.BAD_REQUEST,
-                              message=messages.WRONG_LOGIN_OR_PASSWORD)
+                              message=messages.WRONG_USERNAME_OR_PASSWORD)
 
 
 def email_sign_up(email, password):
@@ -53,7 +53,7 @@ def email_sign_up(email, password):
     return activation, None
 
 
-def phone_signup(phone, password):
+def phone_sign_up(phone, password):
     valid, phone = valid_phone(phone)
     if not valid:
         return None, http.code_response(code=codes.BAD_REQUEST,
@@ -124,33 +124,18 @@ def get_social_info(access_token, social_type):
 @csrf_exempt
 def sign_up(request):
     """
-    @apiDescription Регистрация с помощью телефона или почты. Параметр <code>rtype</code>, для регистрации как риелтор.
+    @apiDescription Регистрация с помощью телефона или почты.
     <br>После регистрации, следует Завершение регистрации(`sign_up_complete`) с помощью высланного кода.<br>
-    <br><code>rtype=0</code> Владелец, required params : person_id, person_name, [contact_number if NO phone]
-    <br><code>rtype=1</code> Частный агент, required params : person_id, person_name, certificate, [contact_number if NO phone]
-    <br><code>rtype=2</code> Агентство недвижимости, required params : person_name, business_id, business_name, certificates, [contact_number if NO phone]
-    <br><code>rtype=3</code> Отель, required params : person_name, business_id, business_name, certificates, [contact_number if NO phone]
-    <br><code>rtype=4</code> Хостел, required params : person_name, business_id, business_name, certificates, [contact_number if NO phone]
 
-    @api {post} /auth/sign_up/ 01. Регистрация [sign_up]
+    @api {post} /core/sign_up/ 02. Регистрация [sign_up]
 
-    @apiName SignUp
+    @apiName Sign Up
 
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
 
     @apiParam {String} username E-mail or Phone
     @apiParam {String} name Name
     @apiParam {String} password Password
-    @apiParam {String{kz, ru, .. }} country Country [Можно посмотреть в методе countries ]
-    @apiParam {Number{0-Владелец, 1-Частный Агент, 2-Агентство недвижимости, 3-Отель, 4-Хостел}} [rtype] Realtor Type
-    @apiParam {Number} [commission] For Agencies(2) and Individuals(1) [from 0 to 100 in PERCENT]
-    @apiParam {String} [person_id] Person Id(ИИН)
-    @apiParam {String} [email] E-mail
-    @apiParam {String} [address] Address
-    @apiParam {String} [business_id] Business Id(БИН)
-    @apiParam {String} [business_name] Business Name
-    @apiParam {String} [contact_number] Contact Number [Required if user=<code>realtor</code> and registration is not by <code>phone</code>]
-    @apiParam {Number[]} [certificate_id] Certificate Ids (can be uploaded from method signup_upload_certificate)
 
     @apiSuccess {json} result Json
     """
@@ -159,14 +144,15 @@ def sign_up(request):
     sms = True
 
     if valid_email(username):
-        # Register via email
+        #   Register via email
         activation, response = email_sign_up(username, password)
         if not activation:
             return response
         success_message = messages.EMAIL_HAS_BEEN_SENT
         sms = False
     else:
-        activation, response = phone_signup(username, password)
+        #   Register via phone number
+        activation, response = phone_sign_up(username, password)
         if not activation:
             return response
         success_message = messages.SMS_HAS_BEEN_SENT
@@ -187,6 +173,7 @@ def sign_up(request):
 @csrf_exempt
 def social_sign_up(request):
     """
+    @apiIgnore
     @apiDescription Регистрация с помощью социальной сети и (телефона или почты). Параметр rtype, для регистрации как риелтор.<br>
     1. делаете запрос на <code>facebook_login/vk_login/google_login/insta_login</code> в зависимости от соцсети<br>
     2.
@@ -199,9 +186,9 @@ def social_sign_up(request):
     3. При успешной регистрации без верификации (соцсеть отдала телефон и имейл), вернется token и user (метод social sign_up)<br>
     4. Если все таки верификация необходима, то нужно завершить регу через метод <code>sign_up_complete</code><br>
 
-    @api {post} /auth/sign_up/social/ 02. Регистрация через соцсети [social_signup]
+    @api {post} /core/sign_up/social/ 02. Регистрация через соцсети [social_sign_up]
 
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
 
     @apiParam {String} name Name
     @apiParam {String} password Password
@@ -249,7 +236,7 @@ def social_sign_up(request):
     elif request.POST.get("verify") == "phone":
         if not info["phone"]:
             info["phone"] = request.POST.get("phone")
-        activation, response = phone_signup(info["phone"], password)
+        activation, response = phone_sign_up(info["phone"], password)
         if not activation:
             return response
     else:
@@ -310,11 +297,11 @@ def sign_up_complete(request):
     @apiDescription Завершение регистрации. Полсе подтверждения высланного кода, регистрация считается завершенной, и только после
     этого пользователь числится в базе.
 
-    @api {post} /auth/sign_up_complete/ 03. Завершение регистрации [sign_up_complete]
+    @api {post} /core/sign_up_complete/ 03. Завершение регистрации [sign_up_complete]
 
-    @apiName SignUp Complete
+    @apiName Sign Up Complete
 
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
 
     @apiParam {String} username Registration phone or email
     @apiParam {String} code Code sent to phone or email
@@ -325,7 +312,7 @@ def sign_up_complete(request):
     code = request.POST.get("code")
     if valid_email(username):
         if User.objects.filter(email=username).exists():
-            # Check if user has already signed up.
+            # Check if user with such email already signed up.
             return http.code_response(code=codes.BAD_REQUEST,
                                       message=messages.USER_ALREADY_EXISTS)
         try:
@@ -337,7 +324,7 @@ def sign_up_complete(request):
     else:
         phone = format_phone(username)
         if User.objects.filter(phone=username).exists():
-            # Check if user has already signed up.
+            # Check if user with such phone already signed up.
             return http.code_response(code=codes.BAD_REQUEST,
                                       message=messages.USER_ALREADY_EXISTS)
         try:
@@ -361,8 +348,8 @@ def reset_password(request):
     @apiDescription Сброс пароля
     <br>Завершение Сброса пароля происходит в методе reset_password_complete
 
-    @api {post} /auth/reset_password/ 12. Сброс пароля [reset_password]
-    @apiGroup 01. Auth
+    @api {post} /core/reset_password/ 12. Сброс пароля [reset_password]
+    @apiGroup 01. Core
     @apiParam {String} phone Phone
     @apiParam {String} new_password New Password
     @apiSuccess {json} result Json
@@ -391,8 +378,8 @@ def change_email(request, user):
     """
     @apiDescription Изменение номера телефона
     <br>Завершение Изменения почты происходит в методе change_email_complete
-    @api {post} /auth/change_email/ 10. Поменять почту [change_email]
-    @apiGroup 01. Auth
+    @api {post} /core/change_email/ 10. Поменять почту [change_email]
+    @apiGroup 01. Core
     @apiHeader {String} auth-token Токен авторизации
     @apiParam {String} new_email New email
     @apiSuccess {json} result Json
@@ -416,9 +403,9 @@ def change_email_complete(request, user):
     """
     @apiDescription Завершение смены email. Полсе подтверждения высланного кода, процесс считается завершенным.
 
-    @api {post} /auth/change_email_complete/ 11. Завершение смены email [change_email_complete]
+    @api {post} /core/change_email_complete/ 11. Завершение смены email [change_email_complete]
 
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
 
     @apiHeader {String} auth-token Auth Token
     @apiParam {String} new_email New email
@@ -458,9 +445,9 @@ def reset_email_password(request):
         @apiDescription Cброс пароля по почте
         <br>Завершение Сброса пароля происходит в методе reset_email_password_complete
 
-        @api {post} /auth/reset_email_password/ 14. Cброс пароля по почте  [reset_email_password]
+        @api {post} /core/reset_email_password/ 14. Cброс пароля по почте  [reset_email_password]
 
-        @apiGroup 01. Auth
+        @apiGroup 01. Core
 
         @apiParam {String} email Email
         @apiParam {String} new_password New Password
@@ -483,9 +470,9 @@ def reset_email_password_complete(request):
     """
         @apiDescription Завершение cброса пароля по почте
 
-        @api {post} /auth/reset_email_password_complete/ 15. Завершение cброса пароля по почте [reset_email_password_complete]
+        @api {post} /core/reset_email_password_complete/ 15. Завершение cброса пароля по почте [reset_email_password_complete]
 
-        @apiGroup 01. Auth
+        @apiGroup 01. Core
 
         @apiParam {String} email Email
         @apiParam {String} code code
@@ -521,9 +508,9 @@ def reset_email_password_complete(request):
 def change_password(request, user):
     """
     @apiDescription Изменение пароля
-    @api {post} /auth/change_password/ 07. Поменять пароль [change_password]
+    @api {post} /core/change_password/ 07. Поменять пароль [change_password]
     @apiName Change password
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
     @apiHeader {String} auth-token Токен авторизации
     @apiParam {String} current_password Current password
     @apiParam {String} new_password New password
@@ -547,8 +534,8 @@ def change_phone(request, user):
     """
     @apiDescription Изменение номера телефона
     <br>Завершение Изменения номера происходит в методе change_phone_complete
-    @api {post} /auth/change_phone/ 08. Поменять номер телефона [change_phone]
-    @apiGroup 01. Auth
+    @api {post} /core/change_phone/ 08. Поменять номер телефона [change_phone]
+    @apiGroup 01. Core
     @apiHeader {String} auth-token Токен авторизации
     @apiParam {String} new_phone New Phone
     @apiSuccess {json} result Json
@@ -572,9 +559,9 @@ def change_phone_complete(request, user):
     """
     @apiDescription Завершение смены номера. Полсе подтверждения высланного кода, процесс считается завершенным.
 
-    @api {post} /auth/change_phone_complete/ 09. Завершение смены номера [change_phone_complete]
+    @api {post} /core/change_phone_complete/ 09. Завершение смены номера [change_phone_complete]
 
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
 
     @apiHeader {String} auth-token Auth Token
     @apiParam {String} new_phone New phone or email
@@ -613,9 +600,9 @@ def reset_password_complete(request):
     @apiDescription Завершение сброса пароля.
     <br>Полсе подтверждения высланного кода, процесс считается завершенным.
 
-    @api {post} /auth/reset_password_complete/ 13. Завершение сброса пароля [reset_password_complete]
+    @api {post} /core/reset_password_complete/ 13. Завершение сброса пароля [reset_password_complete]
 
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
 
     @apiParam {String} phone Phone or email
     @apiParam {String} code Code sent to phone or email
@@ -705,9 +692,9 @@ def facebook_login(request):
     """
     @apiDescription Вход с помощью аккаунта Фэйсбук
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
-    @api {post} /auth/facebook_login/ 16. Вход с Фэйсбука [facebook_login]
+    @api {post} /core/facebook_login/ 16. Вход с Фэйсбука [facebook_login]
     @apiName facebook_login
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
     @apiParam {String} access_token Access token of facebook user.
     @apiSuccess {json} result Json representation of user with token.
     """
@@ -735,9 +722,9 @@ def insta_login(request):
     """
     @apiDescription Вход с помошью аккаунта Инстаграм
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
-    @api {post} /auth/insta_login/ 18. Вход с Инстаграма [insta_login]
+    @api {post} /core/insta_login/ 18. Вход с Инстаграма [insta_login]
     @apiName insta_login
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
     @apiParam {String} access_token Access token of Instagram user.
     @apiSuccess {json} result Json representation of user with token.
     """
@@ -765,9 +752,9 @@ def google_login(request):
     """
     @apiDescription Вход с помощью Гугл Аккаунта
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
-    @api {post} /auth/google_login/ 17. Вход с Гугл Аккаунта [google_login]
+    @api {post} /core/google_login/ 17. Вход с Гугл Аккаунта [google_login]
     @apiName google_login
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
     @apiParam {String} access_token Access token of Google user.
     @apiSuccess {json} result Json representation of user with token.
     """
@@ -791,9 +778,9 @@ def vk_login(request):
     """
     @apiDescription Вход с помощью Аккаунта VK
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
-    @api {post} /auth/vk_login/ 19. Вход с ВК [vk_login]
+    @api {post} /core/vk_login/ 19. Вход с ВК [vk_login]
     @apiName vk_login
-    @apiGroup 01. Auth
+    @apiGroup 01. Core
     @apiParam {String} access_token Access token of vk user.
     @apiSuccess {json} result Json representation of user with generated token.
     """

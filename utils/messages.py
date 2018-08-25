@@ -113,7 +113,7 @@ WRONG_PASSWORD = {
     "kz": "Құпиясөз қате",
     "en": "Wrong password",
 }
-WRONG_LOGIN_OR_PASSWORD = {
+WRONG_USERNAME_OR_PASSWORD = {
     "ru": "Неверный логин или пароль",
     "kz": "Логин немесе құпиясөз қате",
     "en": "Wrong login or password",
