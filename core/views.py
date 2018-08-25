@@ -31,6 +31,12 @@ def sign_in(request):
         phone = format_phone(username)
         user = authenticate(request, phone=phone, password=password)
     if user:
+        #####################################################
+        # save last login time. Hard code. Fix Later from core models.
+        from django.utils import timezone
+        user.last_login = timezone.now()
+        user.save()
+        #####################################################
         return {
             'token': token.create_token(user, remove_others=True),
             'user': user.json(user=user)
