@@ -18,11 +18,11 @@ User = get_user_model()
 @http.json_response()
 def test(request):
     """
-    @apiDescription Тест
-    <br>Тестирование простого метода `GET`
-    @api {get} /room/test/ 01. Тест [test]
-    @apiGroup 02. Room
-    @apiSuccess {json} result Json
+        @apiDescription Тест
+        <br>Тестирование простого метода `GET`
+        @api {get} /room/test/ 01. Тест [test]
+        @apiGroup 02. Room
+        @apiSuccess {json} result Json
     """
     return {}
     # return HttpResponse("<h1>test</h1>")
@@ -91,7 +91,15 @@ def different_users(user01, user02, user03, user04):
 @http.json_response()
 @http.requires_token()
 @csrf_exempt
-def create(request, user):
+def create_room(request, user):
+    """
+        @apiDescription Создание комнаты
+        <br>Создание комнаты. Метод `post`
+        @api {post} /room/create/ 02. Создание комнаты [create_room]
+        @apiGroup 02. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiSuccess {json} result Json
+    """
     if user.rooms.filter(active=True).count() > 0:
         return http.code_response(code=codes.BAD_REQUEST, message=messages.ACTIVE_ROOM_EXISTS)
     room = Room.objects.create(owner=user, user01=user)
@@ -107,9 +115,10 @@ def create(request, user):
 def enter_room(request, user):
     """
         @apiDescription Вход в комнату
-        <br>Тестирование простого метода `post`
-        @api {post} /room/enter/ 02. Вход в комнату [enter_room]
+        @api {post} /room/enter/ 03. Вход в комнату [enter_room]
         @apiGroup 02. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} room_id Room id
         @apiSuccess {json} result Json
     """
     try:
@@ -149,7 +158,16 @@ def enter_room(request, user):
 @http.requires_token()
 @http.required_parameters(["room_id"])
 @csrf_exempt
-def leave(request, user):
+def leave_room(request, user):
+    """
+        @apiDescription Покинуть комнату
+        <br>Вход в комнату с id room_id
+        @api {post} /room/leave/ 04. Покинуть комнату [leave_room]
+        @apiGroup 02. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} room_id Room id
+        @apiSuccess {json} result Json
+    """
     try:
         room_id = int(request.POST.get("room_id") or request.GET.get("room_id"))
         room = Room.objects.filter(
@@ -181,6 +199,15 @@ def leave(request, user):
 @http.required_parameters(["user_id"])
 @csrf_exempt
 def remove_user(request, user):
+    """
+        @apiDescription Удалить игрока
+        <br>Удалить игрока из комнаты с id `user_id`
+        @api {post} /room/remove_user/ 05. Удалить игрока [remove_user]
+        @apiGroup 02. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} user_id User id
+        @apiSuccess {json} result Json
+    """
     try:
         room = user.rooms.get(active=True)
         new_user = User.objects.get(pk=int(request.POST.get("user_id") or request.GET.get("user_id")))
@@ -211,6 +238,15 @@ def remove_user(request, user):
 @http.required_parameters(["room_id"])
 @csrf_exempt
 def ready(request, user):
+    """
+        @apiDescription Готов
+        <br>Нажатие кнопки ГОТОВ
+        @api {post} /room/ready/ 06. Готов [ready]
+        @apiGroup 02. Room
+        @apiHeader {String} auth-token Токен авторизации
+        @apiParam {integer} room_id Room id
+        @apiSuccess {json} result Json
+    """
     try:
         room_id = int(request.POST.get("room_id") or request.GET.get("room_id"))
         room = Room.objects.filter(

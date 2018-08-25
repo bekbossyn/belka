@@ -675,11 +675,79 @@ define({ "api": [
     ]
   },
   {
-    "description": "<p>Вход в комнату <br>Тестирование простого метода <code>post</code></p>",
+    "description": "<p>Создание комнаты <br>Создание комнаты. Метод <code>post</code></p>",
+    "type": "post",
+    "url": "/room/create/",
+    "title": "02. Создание комнаты [create_room]",
+    "group": "02__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "02__Room",
+    "name": "PostRoomCreate",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/create/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Вход в комнату</p>",
     "type": "post",
     "url": "/room/enter/",
-    "title": "02. Вход в комнату [enter_room]",
+    "title": "03. Вход в комнату [enter_room]",
     "group": "02__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "room_id",
+            "description": "<p>Room id</p>"
+          }
+        ]
+      }
+    },
     "success": {
       "fields": {
         "Success 200": [
@@ -700,6 +768,171 @@ define({ "api": [
     "sampleRequest": [
       {
         "url": "http://localhost:8000/api/v1/room/enter/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Покинуть комнату <br>Вход в комнату с id room_id</p>",
+    "type": "post",
+    "url": "/room/leave/",
+    "title": "04. Покинуть комнату [leave_room]",
+    "group": "02__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "room_id",
+            "description": "<p>Room id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "02__Room",
+    "name": "PostRoomLeave",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/leave/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Готов <br>Нажатие кнопки ГОТОВ</p>",
+    "type": "post",
+    "url": "/room/ready/",
+    "title": "06. Готов [ready]",
+    "group": "02__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "room_id",
+            "description": "<p>Room id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "02__Room",
+    "name": "PostRoomReady",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/ready/"
+      }
+    ]
+  },
+  {
+    "description": "<p>Удалить игрока <br>Удалить игрока из комнаты с id <code>user_id</code></p>",
+    "type": "post",
+    "url": "/room/remove_user/",
+    "title": "05. Удалить игрока [remove_user]",
+    "group": "02__Room",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "auth-token",
+            "description": "<p>Токен авторизации</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "integer",
+            "optional": false,
+            "field": "user_id",
+            "description": "<p>User id</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "json",
+            "optional": false,
+            "field": "result",
+            "description": "<p>Json</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./room/views.py",
+    "groupTitle": "02__Room",
+    "name": "PostRoomRemove_user",
+    "sampleRequest": [
+      {
+        "url": "http://localhost:8000/api/v1/room/remove_user/"
       }
     ]
   },
