@@ -3,7 +3,7 @@
     "description": "<p>Изменение пароля</p>",
     "type": "post",
     "url": "/core/change_password/",
-    "title": "07. Поменять пароль [change_password]",
+    "title": "04. Поменять пароль [change_password]",
     "name": "Change_password",
     "group": "01__Core",
     "header": {
@@ -65,7 +65,7 @@
     "description": "<p>Изменение номера телефона <br>Завершение Изменения почты происходит в методе change_email_complete</p>",
     "type": "post",
     "url": "/core/change_email/",
-    "title": "10. Поменять почту [change_email]",
+    "title": "07. Поменять почту [change_email]",
     "group": "01__Core",
     "header": {
       "fields": {
@@ -120,7 +120,7 @@
     "description": "<p>Завершение смены email. Полсе подтверждения высланного кода, процесс считается завершенным.</p>",
     "type": "post",
     "url": "/core/change_email_complete/",
-    "title": "11. Завершение смены email [change_email_complete]",
+    "title": "08. Завершение смены email [change_email_complete]",
     "group": "01__Core",
     "header": {
       "fields": {
@@ -182,7 +182,7 @@
     "description": "<p>Изменение номера телефона <br>Завершение Изменения номера происходит в методе change_phone_complete</p>",
     "type": "post",
     "url": "/core/change_phone/",
-    "title": "08. Поменять номер телефона [change_phone]",
+    "title": "05. Поменять номер телефона [change_phone]",
     "group": "01__Core",
     "header": {
       "fields": {
@@ -237,7 +237,7 @@
     "description": "<p>Завершение смены номера. Полсе подтверждения высланного кода, процесс считается завершенным.</p>",
     "type": "post",
     "url": "/core/change_phone_complete/",
-    "title": "09. Завершение смены номера [change_phone_complete]",
+    "title": "06. Завершение смены номера [change_phone_complete]",
     "group": "01__Core",
     "header": {
       "fields": {
@@ -299,7 +299,7 @@
     "description": "<p>Cброс пароля по почте <br>Завершение Сброса пароля происходит в методе reset_email_password_complete</p>",
     "type": "post",
     "url": "/core/reset_email_password/",
-    "title": "14. Cброс пароля по почте  [reset_email_password]",
+    "title": "11. Cброс пароля по почте  [reset_email_password]",
     "group": "01__Core",
     "parameter": {
       "fields": {
@@ -348,7 +348,7 @@
     "description": "<p>Завершение cброса пароля по почте</p>",
     "type": "post",
     "url": "/core/reset_email_password_complete/",
-    "title": "15. Завершение cброса пароля по почте [reset_email_password_complete]",
+    "title": "12. Завершение cброса пароля по почте [reset_email_password_complete]",
     "group": "01__Core",
     "parameter": {
       "fields": {
@@ -397,7 +397,7 @@
     "description": "<p>Сброс пароля <br>Завершение Сброса пароля происходит в методе reset_password_complete</p>",
     "type": "post",
     "url": "/core/reset_password/",
-    "title": "12. Сброс пароля [reset_password]",
+    "title": "09. Сброс пароля [reset_password]",
     "group": "01__Core",
     "parameter": {
       "fields": {
@@ -446,7 +446,7 @@
     "description": "<p>Завершение сброса пароля. <br>Полсе подтверждения высланного кода, процесс считается завершенным.</p>",
     "type": "post",
     "url": "/core/reset_password_complete/",
-    "title": "13. Завершение сброса пароля [reset_password_complete]",
+    "title": "10. Завершение сброса пароля [reset_password_complete]",
     "group": "01__Core",
     "parameter": {
       "fields": {
@@ -642,174 +642,6 @@
     "sampleRequest": [
       {
         "url": "http://localhost:8000/api/v1/core/sign_in/"
-      }
-    ]
-  },
-  {
-    "description": "<p>Вход с помощью аккаунта Фэйсбук <br>С помощью <code>access_token</code> выполняется аутентификация пользователя</p>",
-    "type": "post",
-    "url": "/core/facebook_login/",
-    "title": "16. Вход с Фэйсбука [facebook_login]",
-    "name": "facebook_login",
-    "group": "01__Core",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "access_token",
-            "description": "<p>Access token of facebook user.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "result",
-            "description": "<p>Json representation of user with token.</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "./core/views.py",
-    "groupTitle": "01__Core",
-    "sampleRequest": [
-      {
-        "url": "http://localhost:8000/api/v1/core/facebook_login/"
-      }
-    ]
-  },
-  {
-    "description": "<p>Вход с помощью Гугл Аккаунта <br>С помощью <code>access_token</code> выполняется аутентификация пользователя</p>",
-    "type": "post",
-    "url": "/core/google_login/",
-    "title": "17. Вход с Гугл Аккаунта [google_login]",
-    "name": "google_login",
-    "group": "01__Core",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "access_token",
-            "description": "<p>Access token of Google user.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "result",
-            "description": "<p>Json representation of user with token.</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "./core/views.py",
-    "groupTitle": "01__Core",
-    "sampleRequest": [
-      {
-        "url": "http://localhost:8000/api/v1/core/google_login/"
-      }
-    ]
-  },
-  {
-    "description": "<p>Вход с помошью аккаунта Инстаграм <br>С помощью <code>access_token</code> выполняется аутентификация пользователя</p>",
-    "type": "post",
-    "url": "/core/insta_login/",
-    "title": "18. Вход с Инстаграма [insta_login]",
-    "name": "insta_login",
-    "group": "01__Core",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "access_token",
-            "description": "<p>Access token of Instagram user.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "result",
-            "description": "<p>Json representation of user with token.</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "./core/views.py",
-    "groupTitle": "01__Core",
-    "sampleRequest": [
-      {
-        "url": "http://localhost:8000/api/v1/core/insta_login/"
-      }
-    ]
-  },
-  {
-    "description": "<p>Вход с помощью Аккаунта VK <br>С помощью <code>access_token</code> выполняется аутентификация пользователя</p>",
-    "type": "post",
-    "url": "/core/vk_login/",
-    "title": "19. Вход с ВК [vk_login]",
-    "name": "vk_login",
-    "group": "01__Core",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "access_token",
-            "description": "<p>Access token of vk user.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "json",
-            "optional": false,
-            "field": "result",
-            "description": "<p>Json representation of user with generated token.</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "./core/views.py",
-    "groupTitle": "01__Core",
-    "sampleRequest": [
-      {
-        "url": "http://localhost:8000/api/v1/core/vk_login/"
       }
     ]
   },

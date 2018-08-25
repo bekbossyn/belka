@@ -347,33 +347,94 @@ def sign_up_complete(request):
 
 
 @http.json_response()
-@http.required_parameters(["phone", "new_password"])
+@http.requires_token()
+@http.required_parameters(["current_password", "new_password"])
 @csrf_exempt
-def reset_password(request):
+def change_password(request, user):
     """
-    @apiDescription Сброс пароля
-    <br>Завершение Сброса пароля происходит в методе reset_password_complete
-
-    @api {post} /core/reset_password/ 12. Сброс пароля [reset_password]
+    @apiDescription Изменение пароля
+    @api {post} /core/change_password/ 04. Поменять пароль [change_password]
+    @apiName Change password
     @apiGroup 01. Core
-    @apiParam {String} phone Phone
-    @apiParam {String} new_password New Password
+    @apiHeader {String} auth-token Токен авторизации
+    @apiParam {String} current_password Current password
+    @apiParam {String} new_password New password
     @apiSuccess {json} result Json
     """
-    phone = format_phone(request.POST.get("phone"))
+    if user.check_password(request.POST.get("current_password")):
+        user.set_password(request.POST.get("new_password"))
+        user.save()
+    else:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_PASSWORD)
+    return {
+        "user": user.json(user=user)
+    }
+
+
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["new_phone"])
+@csrf_exempt
+def change_phone(request, user):
+    """
+    @apiDescription Изменение номера телефона
+    <br>Завершение Изменения номера происходит в методе change_phone_complete
+    @api {post} /core/change_phone/ 05. Поменять номер телефона [change_phone]
+    @apiGroup 01. Core
+    @apiHeader {String} auth-token Токен авторизации
+    @apiParam {String} new_phone New Phone
+    @apiSuccess {json} result Json
+    """
+    if User.objects.filter(phone=request.POST.get("new_phone")).exists():
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_ALREADY_EXISTS)
+    valid, _ = valid_phone(request.POST.get("new_phone"))
+    if not valid:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_PHONE_FORMAT)
+    Activation.objects.create_phone_change_code(phone=user.phone, email=user.email, new_phone=request.POST.get("new_phone"))
+    return {
+        "user": user.json(user=user)
+    }
+
+
+@http.json_response()
+@http.requires_token()
+@http.required_parameters(["new_phone", "code"])
+@csrf_exempt
+def change_phone_complete(request, user):
+    """
+    @apiDescription Завершение смены номера. Полсе подтверждения высланного кода, процесс считается завершенным.
+
+    @api {post} /core/change_phone_complete/ 06. Завершение смены номера [change_phone_complete]
+
+    @apiGroup 01. Core
+
+    @apiHeader {String} auth-token Auth Token
+    @apiParam {String} new_phone New phone or email
+    @apiParam {String} code Code sent to phone or email
+
+    @apiSuccess {json} result Json
+    """
     try:
-        if len(phone) >= 10:
-            if User.objects.filter(phone__endswith=phone[-10:]).count() == 1:
-                user = User.objects.filter(phone__endswith=phone[-10:])[0]
-            else:
-                user = User.objects.get(phone__iexact=phone)
-        else:
-            user = User.objects.get(phone__iexact=phone)
+        activation = Activation.objects.filter(phone=user.phone,
+                                               email=user.email,
+                                               new_phone=request.POST.get("new_phone"),
+                                               to_reset=False, to_change_phone=True,
+                                               code=request.POST.get("code"), used=False)[0]
+        if activation.phone != user.phone:
+            raise Exception(messages.WRONG_ACTIVATION_KEY)
     except:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
-    Activation.objects.filter(phone=user.phone, to_reset=True, to_change_phone=False, to_change_email=False, used=False).update(used=True)
-    Activation.objects.create_reset_code(phone=user.phone, new_password=request.POST.get("new_password"))
-    return http.code_response(code=codes.OK, message=messages.SMS_HAS_BEEN_SENT)
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_ACTIVATION_KEY_OR_INVALID_PHONE)
+    if User.objects.filter(phone=activation.new_phone).exists():
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_ALREADY_EXISTS)
+    u, _ = User.objects.get_or_create(phone=activation.phone, email=activation.email)
+    u.phone = activation.new_phone
+    u.save()
+
+    activation.used = True
+    activation.save()
+    return {
+        "user": u.json(user=user)
+    }
 
 
 @http.json_response()
@@ -384,7 +445,7 @@ def change_email(request, user):
     """
     @apiDescription Изменение номера телефона
     <br>Завершение Изменения почты происходит в методе change_email_complete
-    @api {post} /core/change_email/ 10. Поменять почту [change_email]
+    @api {post} /core/change_email/ 07. Поменять почту [change_email]
     @apiGroup 01. Core
     @apiHeader {String} auth-token Токен авторизации
     @apiParam {String} new_email New email
@@ -409,7 +470,7 @@ def change_email_complete(request, user):
     """
     @apiDescription Завершение смены email. Полсе подтверждения высланного кода, процесс считается завершенным.
 
-    @api {post} /core/change_email_complete/ 11. Завершение смены email [change_email_complete]
+    @api {post} /core/change_email_complete/ 08. Завершение смены email [change_email_complete]
 
     @apiGroup 01. Core
 
@@ -444,158 +505,33 @@ def change_email_complete(request, user):
 
 
 @http.json_response()
-@http.required_parameters(["email", "new_password"])
+@http.required_parameters(["phone", "new_password"])
 @csrf_exempt
-def reset_email_password(request):
+def reset_password(request):
     """
-        @apiDescription Cброс пароля по почте
-        <br>Завершение Сброса пароля происходит в методе reset_email_password_complete
+    @apiDescription Сброс пароля
+    <br>Завершение Сброса пароля происходит в методе reset_password_complete
 
-        @api {post} /core/reset_email_password/ 14. Cброс пароля по почте  [reset_email_password]
-
-        @apiGroup 01. Core
-
-        @apiParam {String} email Email
-        @apiParam {String} new_password New Password
-
-        @apiSuccess {json} result Json
+    @api {post} /core/reset_password/ 09. Сброс пароля [reset_password]
+    @apiGroup 01. Core
+    @apiParam {String} phone Phone
+    @apiParam {String} new_password New Password
+    @apiSuccess {json} result Json
     """
-    if not User.objects.filter(email__iexact=request.POST.get("email")).exists():
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
-    Activation.objects.filter(email=request.POST.get("email"), to_reset=True, to_change_phone=False,
-                              to_change_email=False, used=False).update(used=True)
-    activation = Activation.objects.create_email_reset_code(email=request.POST.get("email"), new_password=request.POST.get("new_password"))
-    activation.send_reset_email()
-    return http.code_response(code=codes.OK, message=messages.EMAIL_HAS_BEEN_SENT)
-
-
-@http.json_response()
-@http.required_parameters(["email", "code"])
-@csrf_exempt
-def reset_email_password_complete(request):
-    """
-        @apiDescription Завершение cброса пароля по почте
-
-        @api {post} /core/reset_email_password_complete/ 15. Завершение cброса пароля по почте [reset_email_password_complete]
-
-        @apiGroup 01. Core
-
-        @apiParam {String} email Email
-        @apiParam {String} code code
-
-        @apiSuccess {json} result Json
-    """
-    if not User.objects.filter(email__iexact=request.POST.get("email")).exists():
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
+    phone = format_phone(request.POST.get("phone"))
     try:
-        activation = Activation.objects.filter(email__iexact=request.POST.get("email"),
-                                               to_reset=True,
-                                               code=request.POST.get("code"),
-                                               used=False)[0]
+        if len(phone) >= 10:
+            if User.objects.filter(phone__endswith=phone[-10:]).count() == 1:
+                user = User.objects.filter(phone__endswith=phone[-10:])[0]
+            else:
+                user = User.objects.get(phone__iexact=phone)
+        else:
+            user = User.objects.get(phone__iexact=phone)
     except:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_ACTIVATION_KEY)
-    u, _ = User.objects.get_or_create(email__iexact=activation.email)
-    u.password = activation.password
-    u.save()
-
-    activation.used = True
-    activation.save()
-
-    return {
-        'token': token.create_token(u, remove_others=True),
-        'user': u.json(user=u)
-    }
-
-
-@http.json_response()
-@http.requires_token()
-@http.required_parameters(["current_password", "new_password"])
-@csrf_exempt
-def change_password(request, user):
-    """
-    @apiDescription Изменение пароля
-    @api {post} /core/change_password/ 07. Поменять пароль [change_password]
-    @apiName Change password
-    @apiGroup 01. Core
-    @apiHeader {String} auth-token Токен авторизации
-    @apiParam {String} current_password Current password
-    @apiParam {String} new_password New password
-    @apiSuccess {json} result Json
-    """
-    if user.check_password(request.POST.get("current_password")):
-        user.set_password(request.POST.get("new_password"))
-        user.save()
-    else:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_PASSWORD)
-    return {
-        "user": user.json(user=user)
-    }
-
-
-@http.json_response()
-@http.requires_token()
-@http.required_parameters(["new_phone"])
-@csrf_exempt
-def change_phone(request, user):
-    """
-    @apiDescription Изменение номера телефона
-    <br>Завершение Изменения номера происходит в методе change_phone_complete
-    @api {post} /core/change_phone/ 08. Поменять номер телефона [change_phone]
-    @apiGroup 01. Core
-    @apiHeader {String} auth-token Токен авторизации
-    @apiParam {String} new_phone New Phone
-    @apiSuccess {json} result Json
-    """
-    if User.objects.filter(phone=request.POST.get("new_phone")).exists():
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_ALREADY_EXISTS)
-    valid, _ = valid_phone(request.POST.get("new_phone"))
-    if not valid:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_PHONE_FORMAT)
-    Activation.objects.create_phone_change_code(phone=user.phone, email=user.email, new_phone=request.POST.get("new_phone"))
-    return {
-        "user": user.json(user=user)
-    }
-
-
-@http.json_response()
-@http.requires_token()
-@http.required_parameters(["new_phone", "code"])
-@csrf_exempt
-def change_phone_complete(request, user):
-    """
-    @apiDescription Завершение смены номера. Полсе подтверждения высланного кода, процесс считается завершенным.
-
-    @api {post} /core/change_phone_complete/ 09. Завершение смены номера [change_phone_complete]
-
-    @apiGroup 01. Core
-
-    @apiHeader {String} auth-token Auth Token
-    @apiParam {String} new_phone New phone or email
-    @apiParam {String} code Code sent to phone or email
-
-    @apiSuccess {json} result Json
-    """
-    try:
-        activation = Activation.objects.filter(phone=user.phone,
-                                               email=user.email,
-                                               new_phone=request.POST.get("new_phone"),
-                                               to_reset=False, to_change_phone=True,
-                                               code=request.POST.get("code"), used=False)[0]
-        if activation.phone != user.phone:
-            raise Exception(messages.WRONG_ACTIVATION_KEY)
-    except:
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_ACTIVATION_KEY_OR_INVALID_PHONE)
-    if User.objects.filter(phone=activation.new_phone).exists():
-        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_ALREADY_EXISTS)
-    u, _ = User.objects.get_or_create(phone=activation.phone, email=activation.email)
-    u.phone = activation.new_phone
-    u.save()
-
-    activation.used = True
-    activation.save()
-    return {
-        "user": u.json(user=user)
-    }
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
+    Activation.objects.filter(phone=user.phone, to_reset=True, to_change_phone=False, to_change_email=False, used=False).update(used=True)
+    Activation.objects.create_reset_code(phone=user.phone, new_password=request.POST.get("new_password"))
+    return http.code_response(code=codes.OK, message=messages.SMS_HAS_BEEN_SENT)
 
 
 @http.json_response()
@@ -606,7 +542,7 @@ def reset_password_complete(request):
     @apiDescription Завершение сброса пароля.
     <br>Полсе подтверждения высланного кода, процесс считается завершенным.
 
-    @api {post} /core/reset_password_complete/ 13. Завершение сброса пароля [reset_password_complete]
+    @api {post} /core/reset_password_complete/ 10. Завершение сброса пароля [reset_password_complete]
 
     @apiGroup 01. Core
 
@@ -642,6 +578,70 @@ def reset_password_complete(request):
     return {
         'token': token.create_token(user, remove_others=True),
         'user': user.json(user=user)
+    }
+
+
+@http.json_response()
+@http.required_parameters(["email", "new_password"])
+@csrf_exempt
+def reset_email_password(request):
+    """
+        @apiDescription Cброс пароля по почте
+        <br>Завершение Сброса пароля происходит в методе reset_email_password_complete
+
+        @api {post} /core/reset_email_password/ 11. Cброс пароля по почте  [reset_email_password]
+
+        @apiGroup 01. Core
+
+        @apiParam {String} email Email
+        @apiParam {String} new_password New Password
+
+        @apiSuccess {json} result Json
+    """
+    if not User.objects.filter(email__iexact=request.POST.get("email")).exists():
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
+    Activation.objects.filter(email=request.POST.get("email"), to_reset=True, to_change_phone=False,
+                              to_change_email=False, used=False).update(used=True)
+    activation = Activation.objects.create_email_reset_code(email=request.POST.get("email"), new_password=request.POST.get("new_password"))
+    activation.send_reset_email()
+    return http.code_response(code=codes.OK, message=messages.EMAIL_HAS_BEEN_SENT)
+
+
+@http.json_response()
+@http.required_parameters(["email", "code"])
+@csrf_exempt
+def reset_email_password_complete(request):
+    """
+        @apiDescription Завершение cброса пароля по почте
+
+        @api {post} /core/reset_email_password_complete/ 12. Завершение cброса пароля по почте [reset_email_password_complete]
+
+        @apiGroup 01. Core
+
+        @apiParam {String} email Email
+        @apiParam {String} code code
+
+        @apiSuccess {json} result Json
+    """
+    if not User.objects.filter(email__iexact=request.POST.get("email")).exists():
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.USER_NOT_FOUND)
+    try:
+        activation = Activation.objects.filter(email__iexact=request.POST.get("email"),
+                                               to_reset=True,
+                                               code=request.POST.get("code"),
+                                               used=False)[0]
+    except:
+        return http.code_response(code=codes.BAD_REQUEST, message=messages.WRONG_ACTIVATION_KEY)
+    u, _ = User.objects.get_or_create(email__iexact=activation.email)
+    u.password = activation.password
+    u.save()
+
+    activation.used = True
+    activation.save()
+
+    return {
+        'token': token.create_token(u, remove_others=True),
+        'user': u.json(user=u)
     }
 
 
@@ -696,6 +696,7 @@ def social_authenticate(social_type, social_id, email=None, phone=None, full_nam
 @http.required_parameters(["access_token"])
 def facebook_login(request):
     """
+    @apiIgnore
     @apiDescription Вход с помощью аккаунта Фэйсбук
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
     @api {post} /core/facebook_login/ 16. Вход с Фэйсбука [facebook_login]
@@ -726,6 +727,7 @@ def facebook_login(request):
 @http.required_parameters(["access_token"])
 def insta_login(request):
     """
+    @apiIgnore
     @apiDescription Вход с помошью аккаунта Инстаграм
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
     @api {post} /core/insta_login/ 18. Вход с Инстаграма [insta_login]
@@ -756,6 +758,7 @@ def insta_login(request):
 @http.required_parameters(["access_token"])
 def google_login(request):
     """
+    @apiIgnore
     @apiDescription Вход с помощью Гугл Аккаунта
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
     @api {post} /core/google_login/ 17. Вход с Гугл Аккаунта [google_login]
@@ -782,6 +785,7 @@ def google_login(request):
 @http.required_parameters(["access_token"])
 def vk_login(request):
     """
+    @apiIgnore
     @apiDescription Вход с помощью Аккаунта VK
     <br>С помощью <code>access_token</code> выполняется аутентификация пользователя
     @api {post} /core/vk_login/ 19. Вход с ВК [vk_login]
@@ -803,4 +807,3 @@ def vk_login(request):
     email = info.get('email')
     phone = info.get('phone')
     return social_authenticate("vk", vk_id, email, phone, full_name)
-
