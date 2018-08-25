@@ -49,7 +49,7 @@ def email_sign_up(email, password):
     Activation.objects.filter(
         email=email, to_reset=False,
         to_change_phone=False, to_change_email=False, used=False).update(used=True)
-    activation = Activation.objects.create_email_code(email, password)
+    activation = Activation.objects.create_email_signup_code(email, password)
     return activation, None
 
 
@@ -64,7 +64,7 @@ def phone_signup(phone, password):
     Activation.objects.filter(
         phone=phone, to_reset=False,
         to_change_phone=False, to_change_email=False, used=False).update(used=True)
-    activation = Activation.objects.create_code(phone=phone, password=password)
+    activation = Activation.objects.create_phone_signup_code(phone=phone, password=password)
     return activation, None
 
 

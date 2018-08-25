@@ -263,7 +263,7 @@ class ActivationManager(models.Manager):
         activation.save()
         return activation
 
-    def create_email_code(self, email, password):
+    def create_email_signup_code(self, email, password):
         """
         Creates activation code and sends SMS via mobizon.kz service.
         Stores hashed password.
@@ -289,7 +289,7 @@ class ActivationManager(models.Manager):
         activation.save()
         return activation
 
-    def create_code(self, phone, password):
+    def create_phone_signup_code(self, phone, password):
         """
         Creates activation code and sends SMS via mobizon.kz service.
         Stores hashed password.
