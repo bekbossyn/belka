@@ -8,12 +8,21 @@
         <title>Base Template</title>
         {% include "base/css.html" %}
         {% block base_head %} {% endblock %}
+        <style>
+            body {
+                background-color: #5e5e5e;
+            }
+        </style>
       </head>
       <body>
         {% include "base/navbar.html" with brand_name="Generated hands of NEW DECK" %}
         {% block content %} {% endblock %}
 
         <div class="container">
+            <div class="row">
+                <div class="col-3"><b>{{ hand01.user.name }}</b> && <b>{{ hand03.user.name }}</b></div>
+                <div class="col-3"><b>{{ hand02.user.name }}</b> && <b>{{ hand04.user.name }}</b></div>
+            </div>
             <div class="row">
                 <div class="col-2">
                     <p>team01 total: </p>
@@ -50,8 +59,8 @@
         <div class="container">
             <div class="row">
                 {% for current_card in current_cards %}
-                    <div class="col-1">
-                        <center><p>id:{{ current_card.id }}</p></center>
+                    <div class="col-3">
+                        <center><p>card_id:{{ current_card.id }} by <b>{{ current_card.hand.user.name }}</b></p></center>
                         <img src="{{ current_card.image_url }}" width="150" height="200"/>
                     </div>
                 {% endfor %}
@@ -62,21 +71,34 @@
         <div class="container">
             <center><p>Deck number {{ deck.id }}</p></center>
             {% if deck.next_move == 1 %}
-                <center><p>Next move: <b>{{ hand01.user.name }}</b></p></center>
+                <center>
+                    <p>Next move: <b>{{ hand01.user.name }} with user_id: {{ hand01.user.id }}</b></p>
+                    <img src="{{ hand01.user.avatar.url }}" alt="Hand01 user's avatar" width="100" height="100">
+                </center>
             {% elif deck.next_move == 2 %}
-                <center><p>Next move: <b>{{ hand02.user.name }}</b></p></center>
+                <center>
+                    <p>Next move: <b>{{ hand02.user.name }} with user_id: {{ hand02.user.id }}</b></p>
+                    <img src="{{ hand02.user.avatar.url }}" alt="Hand02 user's avatar" width="100" height="100">
+                </center>
             {% elif deck.next_move == 3 %}
-                <center><p>Next move: <b>{{ hand03.user.name }}</b></p></center>
+                <center>
+                    <p>Next move: <b>{{ hand03.user.name }} with user_id: {{ hand03.user.id }}</b></p>
+                    <img src="{{ hand03.user.avatar.url }}" alt="Hand03 user's avatar" width="100" height="100">
+                </center>
             {% elif deck.next_move == 4 %}
-                <center><p>Next move: <b>{{ hand04.user.name }}</b></p></center>
+                <center>
+                    <p>Next move: <b>{{ hand04.user.name }} with user_id: {{ hand04.user.id }}</b></p>
+                    <img src="{{ hand04.user.avatar.url }}" alt="Hand04 user's avatar" width="100" height="100">
+                </center>
             {% endif %}
             <center><p>Trump <b>{{ deck.get_trump_display }}</b></p></center>
-            <b>id: {{ hand01.user.id }}. {{ hand01.user.name }}'s hand:</b>
+            <img src="{{ hand01.user.avatar.url }}" alt="Hand01 user's avatar" width="100" height="100">
+            <b>user_id: {{ hand01.user.id }}. {{ hand01.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand01.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
-                            <center><p>id:{{ card.id }}</p></center>
+                            <center><p>card_id:<b>{{ card.id }}</b></p></center>
                             <img src="{{ card.image_url }}" width="150" height="200"/>
                         </div>
                     {% endif %}
@@ -84,13 +106,13 @@
             </div>
 
             <hr/>
-
-            <b>id: {{ hand02.user.id }}. {{ hand02.user.name }}'s hand:</b>
+            <img src="{{ hand02.user.avatar.url }}" alt="Hand02 user's avatar" width="100" height="100">
+            <b>user_id: {{ hand02.user.id }}. {{ hand02.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand02.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
-                            <center><p>id:{{ card.id }}</p></center>
+                            <center><p>card_id:<b>{{ card.id }}</b></p></center>
                             <img src="{{ card.image_url }}" width="150" height="200"/>
                         </div>
                     {% endif %}
@@ -98,13 +120,13 @@
             </div>
 
             <hr/>
-
-            <b>id: {{ hand03.user.id }}. {{ hand03.user.name }}'s hand:</b>
+            <img src="{{ hand03.user.avatar.url }}" alt="Hand03 user's avatar" width="100" height="100">
+            <b>user_id: {{ hand03.user.id }}. {{ hand03.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand03.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
-                            <center><p>id:{{ card.id }}</p></center>
+                            <center><p>card_id:<b>{{ card.id }}</b></p></center>
                             <img src="{{ card.image_url }}" width="150" height="200"/>
                         </div>
                     {% endif %}
@@ -112,13 +134,13 @@
             </div>
 
             <hr/>
-
-            <b>id: {{ hand04.user.id }}. {{ hand04.user.name }}'s hand:</b>
+            <img src="{{ hand04.user.avatar.url }}" alt="Hand04 user's avatar" width="100" height="100">
+            <b>user_id: {{ hand04.user.id }}. {{ hand04.user.name }}'s hand:</b>
             <div class="row">
                 {% for card in hand04.cards.all %}
                     {% if card.active %}
                         <div class="col-1">
-                            <center><p>id:{{ card.id }}</p></center>
+                            <center><p>card_id:<b>{{ card.id }}</b></p></center>
                             <img src="{{ card.image_url }}" width="150" height="200"/>
                         </div>
                     {% endif %}
