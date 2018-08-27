@@ -441,12 +441,11 @@ def deck_finals(sender, instance, **kwargs):
     """
     #   TODO if total moves == 32:
     #   TODO count, hands, count room, finished or not, create next deck, if not finished.
-    trump = -1
     last = instance.room.decks.last()
     #   NOT the beginning.
     if instance.room.has_jack_of_clubs != 0:
         #   define new trump.
-        pass
+        trump = -1
     else:
         trump = 1
     if instance.hands.count() == 0:
