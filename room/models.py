@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from belka import settings
 from utils.constants import SUITS, CARD_NUMBERS, CLUBS_VALUE, SPADES_VALUE, HEARTS_VALUE, INITIAL_PLAYER_INDEX, \
     MOVES_QUEUE, TRUMP_PRIORITY_JACK, DIAMONDS_VALUE, ACE_OF_CLUBS_VALUE, ACE_OF_SPADES_VALUE, ACE_OF_HEARTS_VALUE, \
-    ACE_OF_DIAMONDS_VALUE, TEAM_TOTAL_MAX_LOCAL, TEAM_TOTAL_MAX
+    ACE_OF_DIAMONDS_VALUE, TEAM_TOTAL_MAX_LOCAL, TEAM_TOTAL_MAX, ON_EGGS_OPEN_FOUR, ON_EGGS_OPEN_DOUBLE
 from utils.image_utils import get_url
 from utils.time_utils import dt_to_timestamp
 
@@ -241,14 +241,15 @@ class Deck(models.Model):
         kwargs_exclude = dict()
         value__in = list()
         if not self.room.owner.game_setting.ace_allowed:
-            if not self.clubs:
-                value__in.append(ACE_OF_CLUBS_VALUE)
-            if not self.spades:
-                value__in.append(ACE_OF_SPADES_VALUE)
-            if not self.hearts:
-                value__in.append(ACE_OF_HEARTS_VALUE)
-            if not self.diamonds:
-                value__in.append(ACE_OF_DIAMONDS_VALUE)
+            if first_card.value not in range(value_min, value_max):
+                if not self.clubs:
+                    value__in.append(ACE_OF_CLUBS_VALUE)
+                if not self.spades:
+                    value__in.append(ACE_OF_SPADES_VALUE)
+                if not self.hearts:
+                    value__in.append(ACE_OF_HEARTS_VALUE)
+                if not self.diamonds:
+                    value__in.append(ACE_OF_DIAMONDS_VALUE)
         if len(value__in) > 0:
             kwargs_exclude["value__in"] = value__in
         if trumping:
@@ -511,7 +512,9 @@ def deck_finals(sender, instance, **kwargs):
                 if trump_priority == TRUMP_PRIORITY_JACK * 40 and instance.room.trump_is_hidden:
                     instance.room.has_jack_of_clubs = i + 1
     #   if not the first game, trump is not hidden.
-    instance.room.trump_is_hidden = instance.room.decks.count() == 0
+    # instance.room.trump_is_hidden = instance.room.decks.count() == 0
+    #TODO correction, which needs to be checked carefully
+    instance.room.trump_is_hidden = instance.room.decks.filter(active=True).count() == 0
 
     #   setting ace allowed
     if instance.trump == CLUBS_VALUE:
@@ -544,31 +547,113 @@ def deck_finals(sender, instance, **kwargs):
     if instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
         if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL:
             #   голая реализована командой 01
-            #   TODO team total for FULL
+            if instance.room.owner.game_setting.on_full == ON_EGGS_OPEN_FOUR:
+                #   откывается 4 глаза команда 01
+                instance.room.total_team01 += 4
+                instance.room.save()
+            else:
+                #   голая = партия Выигрывает команда 01
+                instance.room.total_team01 = TEAM_TOTAL_MAX
+                instance.room.save()
             pass
         elif instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
             #   голая реализована командой 02
-            #   TODO team total for FULL
+            if instance.room.owner.game_setting.on_full == ON_EGGS_OPEN_FOUR:
+                #   откывается 4 глаза команда 02
+                instance.room.total_team02 += 4
+                instance.room.save()
+            else:
+                #   голая = партия Выигрывает команда 02
+                instance.room.total_team02 = TEAM_TOTAL_MAX
+                instance.room.save()
+
             pass
+        elif instance.room.previous_eggs:
+            #   предыдущая игра ЯЙЦА
+            if instance.room.owner.game_setting.on_eggs == ON_EGGS_OPEN_FOUR:
+                #   открывается 4 глаза
+                if instance.total_team01 > instance.total_team02:
+                    #   открывает команда 01
+                    instance.room.total_team01 += 4
+                    instance.room.previous_eggs = False
+                    instance.room.save()
+                elif instance.total_team01 < instance.total_team02:
+                    #   открывает команда 02
+                    instance.room.total_team02 += 4
+                    instance.room.previous_eggs = False
+                    instance.room.save()
+                else:
+                    #TODO опять ЯЙЦА
+                    pass
+            elif instance.room.owner.game_setting.on_eggs == ON_EGGS_OPEN_DOUBLE:
+                #   открывается удвоенно
+                if instance.total_team01 > instance.total_team02:
+                    #   открывает команда 01
+                    if instance.room.has_jack_of_clubs in team01:
+                        # козырь с команды 01
+                        if instance.total_team02 < instance.room.owner.game_setting.on_save:
+                            #   команда 02 не набрала СПАС
+                            instance.room.total_team01 += 4
+                        else:
+                            #   команда 02 набрала СПАС
+                            instance.room.total_team01 += 2
+                        instance.room.previous_eggs = False
+                        instance.room.save()
+                    elif instance.room.has_jack_of_clubs in team02:
+                        # козырь с команды 02
+                        if instance.total_team02 < instance.room.owner.game_setting.on_save:
+                            #   команда 02 не набрала СПАС
+                            instance.room.total_team01 += 6
+                        else:
+                            #   команда 02 набрала СПАС
+                            instance.room.total_team01 += 4
+                        instance.room.previous_eggs = False
+                        instance.room.save()
+                elif instance.total_team01 < instance.total_team02:
+                    #   открывает команда 02
+                    if instance.room.has_jack_of_clubs in team01:
+                        # козырь с команды 01
+                        if instance.total_team01 < instance.room.owner.game_setting.on_save:
+                            #   команда 01 не набрала СПАС
+                            instance.room.total_team02 += 6
+                        else:
+                            #   команда 01 набрала СПАС
+                            instance.room.total_team02 += 4
+                        instance.room.previous_eggs = False
+                        instance.room.save()
+                    elif instance.room.has_jack_of_clubs in team02:
+                        # козырь с команды 02
+                        if instance.total_team01 < instance.room.owner.game_setting.on_save:
+                            #   команда 01 не набрала СПАС
+                            instance.room.total_team02 += 4
+                        else:
+                            #   команда 01 набрала СПАС
+                            instance.room.total_team02 += 2
+                        instance.room.previous_eggs = False
+                        instance.room.save()
+                else:
+                    #TODO опять ЯЙЦА
+                    pass
+
         elif instance.total_team01 < instance.room.owner.game_setting.on_save:
-            #   TODO команда team01 не набрала спас
             if instance.room.has_jack_of_clubs in team01:
+                #   если команда 01 не набрала спас и козырь с команды 01
                 instance.room.total_team02 += 3
                 instance.room.save()
             else:
+                #   если команда 01 не набрала спас и козырь с команды 02
                 instance.room.total_team02 += 2
                 instance.room.save()
         elif instance.total_team02 < instance.room.owner.game_setting.on_save:
-            #   TODO команда team02 не набрала спас
             if instance.room.has_jack_of_clubs in team02:
+                #   если команда 02 не набрала спас и козырь с команды 02
                 instance.room.total_team01 += 3
                 instance.room.save()
             else:
+                #   если команда 02 не набрала спас и козырь с команды 01
                 instance.room.total_team01 += 2
                 instance.room.save()
         else:
-            #   TODO команды набрали произвольные очки
-            #   TODO команда team01 набрала больше
             if instance.total_team01 > instance.total_team02:
                 if instance.room.has_jack_of_clubs in team01:
                     instance.room.total_team01 += 1
@@ -577,7 +662,6 @@ def deck_finals(sender, instance, **kwargs):
                     instance.room.total_team01 += 2
                     instance.room.save()
             elif instance.total_team01 < instance.total_team02:
-                #   TODO команда team02 набрала больше
                 if instance.room.has_jack_of_clubs in team02:
                     instance.room.total_team02 += 1
                     instance.room.save()
@@ -587,10 +671,24 @@ def deck_finals(sender, instance, **kwargs):
             else:
                 #   TODO ЯЙЦА
                 instance.room.previous_eggs = True
+                instance.room.save()
                 #   TODO create deck to play eggs
                 pass
         if instance.room.total_team01 >= TEAM_TOTAL_MAX or instance.room.total_team02 >= TEAM_TOTAL_MAX:
             #   TODO Закончить игру
+            #   Обнуление и Ожидание игроков
+            instance.room.user01_ready = False
+            instance.room.user02_ready = False
+            instance.room.user03_ready = False
+            instance.room.user04_ready = False
+            instance.room.started = False
+            instance.room.total_team01 = 0
+            instance.room.total_team02 = 0
+            instance.room.trump_is_hidden = True
+            instance.room.has_jack_of_clubs = 0
+            instance.room.save()
+            #    деактивирование Всех Активных колод Комнаты
+            instance.room.decks.all().update(active=False)
             pass
         else:
             instance.room.decks.filter(active=True).update(active=False)
