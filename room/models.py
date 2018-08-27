@@ -595,7 +595,11 @@ def deck_finals(sender, instance, **kwargs):
         else:
             instance.room.decks.filter(active=True).update(active=False)
             #   create new deck
-            deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=instance.next_move)
+            if instance.total_moves == 32:
+                next_move = instance.room.decks.count() % 4 + 1
+            else:
+                next_move = instance.next_move
+            deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=next_move)
 
 
 def card_to_number(trump, suit, card_number):
