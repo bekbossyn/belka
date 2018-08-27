@@ -482,8 +482,9 @@ def deck_finals(sender, instance, **kwargs):
                 if card["value"] // 100 == trump:
                     for card_number in CARD_NUMBERS:
                         if card["value"] % 100 == card_number[0]:
-                            card["trump_priority"] = card_number[2]
-                            break
+                            if card["name"] not in ["jack_of_clubs", "jack_of_spades", "jack_of_hearts", "jack_of_diamonds"]:
+                                card["trump_priority"] = card_number[2]
+                                break
 
         for i in range(4):
             if i == 0:
