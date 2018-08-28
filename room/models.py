@@ -512,10 +512,10 @@ def deck_finals(sender, instance, **kwargs):
                 if trump_priority == TRUMP_PRIORITY_JACK * 40 and instance.room.trump_is_hidden:
                     instance.room.has_jack_of_clubs = i + 1
     #   if not the first game, trump is not hidden.
-    # instance.room.trump_is_hidden = instance.room.decks.count() == 0
     #TODO correction, which needs to be checked carefully
-    instance.room.trump_is_hidden = instance.room.decks.filter(active=True).count() == 0
-
+    #TODO Fix Count by Counting with LABEL of room and deck SAME
+    instance.room.trump_is_hidden = instance.room.decks.filter().count() == 1
+    instance.room.save()
     #   setting ace allowed
     if instance.trump == CLUBS_VALUE:
         instance.clubs = True
@@ -538,12 +538,19 @@ def deck_finals(sender, instance, **kwargs):
 
     instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
     #   Если козырь в начале был
-    if instance.room.has_jack_of_clubs % 2 == 0:
-        team01 = [2, 4]
-        team02 = [1, 3]
-    else:
-        team01 = [1, 3]
-        team02 = [2, 4]
+    team01 = [1, 3]
+    team02 = [2, 4]
+    if instance.trump > 2:      #    Trump is Hearts or Diamonds
+        if instance.room.has_jack_of_clubs % 2 == 0:    #   Trump user of room is 2 or 4
+            current_trump_team = 1
+        else:
+            current_trump_team = 2
+    else:                       #    Trump is Clubs or Spades
+        if instance.room.has_jack_of_clubs % 2 == 0:    #   Trump user of room is 2 or 4
+            current_trump_team = 2
+        else:
+            current_trump_team = 1
+
     if instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
         if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL:
             #   голая реализована командой 01
@@ -589,7 +596,7 @@ def deck_finals(sender, instance, **kwargs):
                 #   открывается удвоенно
                 if instance.total_team01 > instance.total_team02:
                     #   открывает команда 01
-                    if instance.room.has_jack_of_clubs in team01:
+                    if current_trump_team in team01:
                         # козырь с команды 01
                         if instance.total_team02 < instance.room.owner.game_setting.on_save:
                             #   команда 02 не набрала СПАС
@@ -599,7 +606,7 @@ def deck_finals(sender, instance, **kwargs):
                             instance.room.total_team01 += 2
                         instance.room.previous_eggs = False
                         instance.room.save()
-                    elif instance.room.has_jack_of_clubs in team02:
+                    elif current_trump_team in team02:
                         # козырь с команды 02
                         if instance.total_team02 < instance.room.owner.game_setting.on_save:
                             #   команда 02 не набрала СПАС
@@ -611,7 +618,7 @@ def deck_finals(sender, instance, **kwargs):
                         instance.room.save()
                 elif instance.total_team01 < instance.total_team02:
                     #   открывает команда 02
-                    if instance.room.has_jack_of_clubs in team01:
+                    if current_trump_team in team01:
                         # козырь с команды 01
                         if instance.total_team01 < instance.room.owner.game_setting.on_save:
                             #   команда 01 не набрала СПАС
@@ -621,7 +628,7 @@ def deck_finals(sender, instance, **kwargs):
                             instance.room.total_team02 += 4
                         instance.room.previous_eggs = False
                         instance.room.save()
-                    elif instance.room.has_jack_of_clubs in team02:
+                    elif current_trump_team in team02:
                         # козырь с команды 02
                         if instance.total_team01 < instance.room.owner.game_setting.on_save:
                             #   команда 01 не набрала СПАС
@@ -636,7 +643,7 @@ def deck_finals(sender, instance, **kwargs):
                     pass
 
         elif instance.total_team01 < instance.room.owner.game_setting.on_save:
-            if instance.room.has_jack_of_clubs in team01:
+            if current_trump_team in team01:
                 #   если команда 01 не набрала спас и козырь с команды 01
                 instance.room.total_team02 += 3
                 instance.room.save()
@@ -645,7 +652,7 @@ def deck_finals(sender, instance, **kwargs):
                 instance.room.total_team02 += 2
                 instance.room.save()
         elif instance.total_team02 < instance.room.owner.game_setting.on_save:
-            if instance.room.has_jack_of_clubs in team02:
+            if current_trump_team in team02:
                 #   если команда 02 не набрала спас и козырь с команды 02
                 instance.room.total_team01 += 3
                 instance.room.save()
@@ -655,14 +662,14 @@ def deck_finals(sender, instance, **kwargs):
                 instance.room.save()
         else:
             if instance.total_team01 > instance.total_team02:
-                if instance.room.has_jack_of_clubs in team01:
+                if current_trump_team in team01:
                     instance.room.total_team01 += 1
                     instance.room.save()
                 else:
                     instance.room.total_team01 += 2
                     instance.room.save()
             elif instance.total_team01 < instance.total_team02:
-                if instance.room.has_jack_of_clubs in team02:
+                if current_trump_team in team02:
                     instance.room.total_team02 += 1
                     instance.room.save()
                 else:
@@ -688,9 +695,11 @@ def deck_finals(sender, instance, **kwargs):
             instance.room.has_jack_of_clubs = 0
             instance.room.save()
             #    деактивирование Всех Активных колод Комнаты
+            instance.room.decks.last().hands.filter(active=True).update(active=False)
             instance.room.decks.all().update(active=False)
             pass
         else:
+            instance.room.decks.last().hands.filter(active=True).update(active=False)
             instance.room.decks.filter(active=True).update(active=False)
             #   create new deck
             if instance.total_moves == 32:
