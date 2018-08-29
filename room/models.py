@@ -710,7 +710,7 @@ def deck_finals(sender, instance, **kwargs):
                 else:
                     instance.room.total_team02 += 2
                     instance.room.save()
-            else:
+            elif instance.total_team01 == instance.total_team02:
                 #   TODO ЯЙЦА
                 instance.room.previous_eggs = True
                 instance.room.save()
@@ -786,7 +786,7 @@ class Move(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"MoveHistory {0} of deck {1}".format(self.pk, self.deck_id)
+        return u"Move history {0} of deck {1}".format(self.pk, self.deck_id)
 
     def json(self, active=True):
         return {
