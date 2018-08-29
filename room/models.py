@@ -148,6 +148,8 @@ class Deck(models.Model):
     diamonds = models.BooleanField(default=False)
     total_team01 = models.PositiveSmallIntegerField(default=0)
     total_team02 = models.PositiveSmallIntegerField(default=0)
+    team01_received = models.BooleanField(default=False)
+    team02_received = models.BooleanField(default=False)
     label = models.PositiveSmallIntegerField(default=1)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -159,11 +161,10 @@ class Deck(models.Model):
         """
             if total moves are % 4 then we decide who takes the next move
         """
-        team_total_deck = 0
         if self.total_moves % 4 == 0:
-            #   if it is the end of deck
-            if self.total_moves == 32:
-                self.next_move = self.room.decks.count() % 4 + 1
+            # #   if it is the end of deck
+            # if self.total_moves == 32:
+            #     self.next_move = self.room.decks.count() % 4 + 1
             first_card = self.cards.get(movement_index=self.total_moves - 3)
             current_card = first_card
             second_card = self.cards.get(movement_index=self.total_moves - 2)
@@ -327,6 +328,14 @@ class Deck(models.Model):
             #   next moves the player who takes 4 cards of current moves
             self.total_moves = self.total_moves + 1
             self.next_move = self.generate_next_move()
+            #   Для определения Голой в конце раздачи
+            #   Если команда взяла один раз, хоть и 0 очков это уже НЕ ГОЛАЯ
+            team01 = [1, 3]
+            team02 = [2, 4]
+            if self.next_move in team01:
+                self.team01_received = True
+            elif self.next_move in team02:
+                self.team02_received = True
             self.save()
 
     def json(self, active=True):
@@ -560,7 +569,7 @@ def deck_finals(sender, instance, **kwargs):
 
     if instance.total_moves >= 32 and instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
         #TODO 120 очков НЕ ОЗНАЧАЕТ ГОЛАЯ. Требуется дополнительная проверка
-        if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL:
+        if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL and instance.team02_received is False:
             #   голая реализована командой 01
             if instance.room.owner.game_setting.on_full == ON_EGGS_OPEN_FOUR:
                 #   откывается 4 глаза команда 01
@@ -571,7 +580,7 @@ def deck_finals(sender, instance, **kwargs):
                 instance.room.total_team01 = TEAM_TOTAL_MAX
                 instance.room.save()
             pass
-        elif instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
+        elif instance.total_team02 == TEAM_TOTAL_MAX_LOCAL and instance.team01_received is False:
             #   голая реализована командой 02
             if instance.room.owner.game_setting.on_full == ON_EGGS_OPEN_FOUR:
                 #   откывается 4 глаза команда 02
