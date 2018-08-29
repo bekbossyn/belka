@@ -160,6 +160,8 @@ class Deck(models.Model):
     def generate_next_move(self):
         """
             if total moves are % 4 then we decide who takes the next move
+            returns second argument as Boolean, meaning end of 4 movements cycle if True, and
+            False if movement cycle of 4 people did not end.
         """
         if self.total_moves % 4 == 0:
             # #   if it is the end of deck
@@ -224,18 +226,18 @@ class Deck(models.Model):
             #   сумма набранных очков командой
             if user_id == self.room.user01_id:
                 self.total_team01 += team_total_deck
-                return 1
+                return 1, True
             elif user_id == self.room.user02_id:
                 self.total_team02 += team_total_deck
-                return 2
+                return 2, True
             elif user_id == self.room.user03_id:
                 self.total_team01 += team_total_deck
-                return 3
+                return 3, True
             else:
                 self.total_team02 += team_total_deck
-                return 4
+                return 4, True
         else:
-            return self.next_move % 4 + 1
+            return self.next_move % 4 + 1, False
 
     def allowed_list(self, trumping=False, hand=None, first_card=None):
         jack_values = [110, 210, 310, 410]
@@ -327,15 +329,17 @@ class Deck(models.Model):
             hand.cards.filter(pk=card_id).update(active=False, movement_index=self.total_moves + 1)
             #   next moves the player who takes 4 cards of current moves
             self.total_moves = self.total_moves + 1
-            self.next_move = self.generate_next_move()
+            self.next_move, end_cycle = self.generate_next_move()
             #   Для определения Голой в конце раздачи
             #   Если команда взяла один раз, хоть и 0 очков это уже НЕ ГОЛАЯ
             team01 = [1, 3]
             team02 = [2, 4]
-            if self.next_move in team01:
-                self.team01_received = True
-            elif self.next_move in team02:
-                self.team02_received = True
+            if end_cycle:
+                #   Means that come team took the movement Cycle, and should make a tick of received team for GOLAYA
+                if self.next_move in team01:
+                    self.team01_received = True
+                elif self.next_move in team02:
+                    self.team02_received = True
             self.save()
 
     def json(self, active=True):
