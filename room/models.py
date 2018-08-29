@@ -92,7 +92,7 @@ class Room(models.Model):
             "setting": self.owner.game_setting.json(),
             "started": self.started,
             "current_label": self.current_label,
-            "last_deck": self.decks.filter(active=True).last().json() if self.decks.filter(label=self.current_label).count() > 0 else None,
+            "last_deck": self.decks.filter(active=True, label=self.current_label).last().json() if self.decks.filter(active=True, label=self.current_label).count() > 0 else None,
         }
 
     def list_json(self):
@@ -247,15 +247,14 @@ class Deck(models.Model):
         kwargs_exclude = dict()
         value__in = list()
         if not self.room.owner.game_setting.ace_allowed:
-            if first_card.value not in range(value_min, value_max):
-                if not self.clubs:
-                    value__in.append(ACE_OF_CLUBS_VALUE)
-                if not self.spades:
-                    value__in.append(ACE_OF_SPADES_VALUE)
-                if not self.hearts:
-                    value__in.append(ACE_OF_HEARTS_VALUE)
-                if not self.diamonds:
-                    value__in.append(ACE_OF_DIAMONDS_VALUE)
+            if not self.clubs:
+                value__in.append(ACE_OF_CLUBS_VALUE)
+            if not self.spades:
+                value__in.append(ACE_OF_SPADES_VALUE)
+            if not self.hearts:
+                value__in.append(ACE_OF_HEARTS_VALUE)
+            if not self.diamonds:
+                value__in.append(ACE_OF_DIAMONDS_VALUE)
         if len(value__in) > 0:
             kwargs_exclude["value__in"] = value__in
         if trumping:
@@ -335,7 +334,8 @@ class Deck(models.Model):
             team01 = [1, 3]
             team02 = [2, 4]
             if end_cycle:
-                #   Means that come team took the movement Cycle, and should make a tick of received team for GOLAYA
+                #   Means that one team took the movement Cycle, and should make a tick of received team
+                #   for defining GOLAYA
                 if self.next_move in team01:
                     self.team01_received = True
                 elif self.next_move in team02:
@@ -459,7 +459,7 @@ def deck_finals(sender, instance, **kwargs):
     """
     #   TODO if total moves == 32:
     #   TODO count, hands, count room, finished or not, create next deck, if not finished.
-    last = instance.room.decks.last()
+    last = instance.room.decks.filter(label=instance.room.current_label).last()
     #   NOT the beginning.
     if instance.room.has_jack_of_clubs != 0:
         #   define new trump.
@@ -467,7 +467,6 @@ def deck_finals(sender, instance, **kwargs):
     else:
         trump = 1
 
-    #TODO Fix Count by Counting with LABEL of room and deck SAME
     instance.room.trump_is_hidden = instance.room.decks.filter(label=instance.room.current_label).count() <= 1
     instance.room.save()
 
@@ -537,42 +536,57 @@ def deck_finals(sender, instance, **kwargs):
     #TODO correction, which needs to be checked carefully
 
     #   setting ace allowed
-    if instance.trump == CLUBS_VALUE:
-        instance.clubs = True
-    elif instance.trump == SPADES_VALUE:
-        instance.spades = True
-    elif instance.trump == HEARTS_VALUE:
-        instance.hearts = True
-    elif instance.trump == DIAMONDS_VALUE:
-        instance.diamonds = True
-    if instance.room.owner.game_setting.ace_allowed:
-        instance.clubs = True
-        instance.spades = True
-        instance.hearts = True
-        instance.diamonds = True
-    #   in order to avoid infinite recursion in post saving method.
-    instance.room.decks.filter(pk=last.pk).update(clubs=instance.clubs,
-                                                  spades=instance.spades,
-                                                  hearts=instance.hearts,
-                                                  diamonds=instance.diamonds)
+    if instance.total_moves == 0:
+        if instance.trump == CLUBS_VALUE:
+            instance.clubs = True
+        elif instance.trump == SPADES_VALUE:
+            instance.spades = True
+        elif instance.trump == HEARTS_VALUE:
+            instance.hearts = True
+        elif instance.trump == DIAMONDS_VALUE:
+            instance.diamonds = True
+        if instance.room.owner.game_setting.ace_allowed:
+            instance.clubs = True
+            instance.spades = True
+            instance.hearts = True
+            instance.diamonds = True
+        #   in order to avoid infinite recursion in post saving method.
+        instance.room.decks.filter(pk=last.pk).update(clubs=instance.clubs,
+                                                      spades=instance.spades,
+                                                      hearts=instance.hearts,
+                                                      diamonds=instance.diamonds)
+    elif instance.total_moves % 4 == 1:
+        card = instance.cards.get(pk=instance.moves.last().card_id)
+        value = card.value // 100
+        if value == CLUBS_VALUE:
+            instance.clubs = True
+        elif value == SPADES_VALUE:
+            instance.spades = True
+        elif value == HEARTS_VALUE:
+            instance.hearts = True
+        elif value == DIAMONDS_VALUE:
+            instance.diamonds = True
+        instance.room.decks.filter(pk=last.pk).update(clubs=instance.clubs,
+                                                      spades=instance.spades,
+                                                      hearts=instance.hearts,
+                                                      diamonds=instance.diamonds)
 
     instance.room.decks.filter(active=True, label=instance.room.current_label).exclude(pk=last.pk).update(active=False)
-    #   Если козырь в начале был
-    team01 = [1, 3]
-    team02 = [2, 4]
-    if instance.trump > 2:      #    Trump is Hearts or Diamonds
-        if instance.room.has_jack_of_clubs % 2 == 0:    #   Trump user of room is 2 or 4
-            current_trump_team = 1
-        else:
-            current_trump_team = 2
-    else:                       #    Trump is Clubs or Spades
-        if instance.room.has_jack_of_clubs % 2 == 0:    #   Trump user of room is 2 or 4
-            current_trump_team = 2
-        else:
-            current_trump_team = 1
 
     if instance.total_moves >= 32 and instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
-        #TODO 120 очков НЕ ОЗНАЧАЕТ ГОЛАЯ. Требуется дополнительная проверка
+        #   Если козырь в начале был
+        team01 = [1, 3]
+        team02 = [2, 4]
+        if instance.trump > 2:  # Trump is Hearts or Diamonds
+            if instance.room.has_jack_of_clubs % 2 == 0:  # Trump user of room is 2 or 4
+                current_trump_team = 1
+            else:
+                current_trump_team = 2
+        else:  # Trump is Clubs or Spades
+            if instance.room.has_jack_of_clubs % 2 == 0:  # Trump user of room is 2 or 4
+                current_trump_team = 2
+            else:
+                current_trump_team = 1
         if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL and instance.team02_received is False:
             #   голая реализована командой 01
             if instance.room.owner.game_setting.on_full == ON_EGGS_OPEN_FOUR:
