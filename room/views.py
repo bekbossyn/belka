@@ -265,7 +265,7 @@ def ready(request, user):
         room.user04_ready = True
     room.save()
     if room.all_ready:
-        deck, created = Deck.objects.get_or_create(room=room, active=True)
+        deck, created = Deck.objects.get_or_create(room=room, active=True, label=room.current_label)
         if created:
             room.started = True
             room.save()

@@ -32,6 +32,7 @@ class Room(models.Model):
     total_team01 = models.PositiveSmallIntegerField(default=0)
     total_team02 = models.PositiveSmallIntegerField(default=0)
     previous_eggs = models.BooleanField(default=False)
+    current_label = models.PositiveSmallIntegerField(default=1)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -90,7 +91,8 @@ class Room(models.Model):
             "timestamp": dt_to_timestamp(self.timestamp),
             "setting": self.owner.game_setting.json(),
             "started": self.started,
-            "last_deck": self.decks.filter(active=True).last().json() if self.decks.count() > 0 else None,
+            "current_label": self.current_label,
+            "last_deck": self.decks.filter(active=True).last().json() if self.decks.filter(label=self.current_label).count() > 0 else None,
         }
 
     def list_json(self):
@@ -146,6 +148,7 @@ class Deck(models.Model):
     diamonds = models.BooleanField(default=False)
     total_team01 = models.PositiveSmallIntegerField(default=0)
     total_team02 = models.PositiveSmallIntegerField(default=0)
+    label = models.PositiveSmallIntegerField(default=1)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -335,6 +338,7 @@ class Deck(models.Model):
             "total_moves": self.total_moves,
             "total_team01": self.total_team01,
             "total_team02": self.total_team02,
+            "label": self.label,
             "active": self.active,
             "timestamp": dt_to_timestamp(self.timestamp),
         }
@@ -449,6 +453,11 @@ def deck_finals(sender, instance, **kwargs):
         trump = -1
     else:
         trump = 1
+
+    #TODO Fix Count by Counting with LABEL of room and deck SAME
+    instance.room.trump_is_hidden = instance.room.decks.filter(label=instance.room.current_label).count() <= 1
+    instance.room.save()
+
     if instance.hands.count() == 0:
         bag = list()
         for suit in SUITS:
@@ -478,7 +487,7 @@ def deck_finals(sender, instance, **kwargs):
                             trump = 4
                         break
             #   setting current trump
-            instance.room.decks.filter(pk=last.pk).update(trump=trump)
+            instance.room.decks.filter(pk=last.pk).update(trump=trump, label=instance.room.current_label)
             for card in randomized_bag:
                 if card["value"] // 100 == trump:
                     for card_number in CARD_NUMBERS:
@@ -513,9 +522,7 @@ def deck_finals(sender, instance, **kwargs):
                     instance.room.has_jack_of_clubs = i + 1
     #   if not the first game, trump is not hidden.
     #TODO correction, which needs to be checked carefully
-    #TODO Fix Count by Counting with LABEL of room and deck SAME
-    instance.room.trump_is_hidden = instance.room.decks.filter().count() == 1
-    instance.room.save()
+
     #   setting ace allowed
     if instance.trump == CLUBS_VALUE:
         instance.clubs = True
@@ -536,7 +543,7 @@ def deck_finals(sender, instance, **kwargs):
                                                   hearts=instance.hearts,
                                                   diamonds=instance.diamonds)
 
-    instance.room.decks.filter(active=True).exclude(pk=last.pk).update(active=False)
+    instance.room.decks.filter(active=True, label=instance.room.current_label).exclude(pk=last.pk).update(active=False)
     #   Если козырь в начале был
     team01 = [1, 3]
     team02 = [2, 4]
@@ -551,7 +558,8 @@ def deck_finals(sender, instance, **kwargs):
         else:
             current_trump_team = 1
 
-    if instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
+    if instance.total_moves >= 32 and instance.total_team01 + instance.total_team02 == TEAM_TOTAL_MAX_LOCAL:
+        #TODO 120 очков НЕ ОЗНАЧАЕТ ГОЛАЯ. Требуется дополнительная проверка
         if instance.total_team01 == TEAM_TOTAL_MAX_LOCAL:
             #   голая реализована командой 01
             if instance.room.owner.game_setting.on_full == ON_EGGS_OPEN_FOUR:
@@ -693,6 +701,7 @@ def deck_finals(sender, instance, **kwargs):
             instance.room.total_team02 = 0
             instance.room.trump_is_hidden = True
             instance.room.has_jack_of_clubs = 0
+            instance.room.current_label = instance.room.current_label + 1
             instance.room.save()
             #    деактивирование Всех Активных колод Комнаты
             instance.room.decks.last().hands.filter(active=True).update(active=False)
@@ -703,10 +712,15 @@ def deck_finals(sender, instance, **kwargs):
             instance.room.decks.filter(active=True).update(active=False)
             #   create new deck
             if instance.total_moves == 32:
-                next_move = instance.room.decks.count() % 4 + 1
+                next_move = instance.room.decks.filter(label=instance.room.current_label).count() % 4 + 1
+                #   actually, it will CREATE
+                deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=next_move, label=instance.room.current_label)
+                # instance.room.current_label = instance.room.current_label + 1
+                # instance.room.save()
             else:
                 next_move = instance.next_move
-            deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=next_move)
+                #   actually, it will GET
+                deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=next_move, label=instance.room.current_label)
 
 
 def card_to_number(trump, suit, card_number):
