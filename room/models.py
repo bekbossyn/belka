@@ -713,8 +713,6 @@ def deck_finals(sender, instance, **kwargs):
                 #   ЯЙЦА
                 instance.room.previous_eggs = instance.room.previous_eggs + 1
                 instance.room.save()
-                #   TODO create deck to play eggs
-                pass
         if instance.room.total_team01 >= TEAM_TOTAL_MAX or instance.room.total_team02 >= TEAM_TOTAL_MAX:
             #   Обнуление и Ожидание игроков
             instance.room.user01_ready = False
@@ -740,8 +738,6 @@ def deck_finals(sender, instance, **kwargs):
                 next_move = instance.room.decks.filter(label=instance.room.current_label).count() % 4 + 1
                 #   actually, it will CREATE
                 deck, created = Deck.objects.get_or_create(room=instance.room, active=True, next_move=next_move, label=instance.room.current_label)
-                # instance.room.current_label = instance.room.current_label + 1
-                # instance.room.save()
             else:
                 next_move = instance.next_move
                 #   actually, it will GET
