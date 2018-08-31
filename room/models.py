@@ -31,7 +31,7 @@ class Room(models.Model):
     full = models.BooleanField(default=False)
     total_team01 = models.PositiveSmallIntegerField(default=0)
     total_team02 = models.PositiveSmallIntegerField(default=0)
-    previous_eggs = models.BooleanField(default=False)
+    previous_eggs = models.PositiveSmallIntegerField(default=0)
     current_label = models.PositiveSmallIntegerField(default=1)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -608,25 +608,24 @@ def deck_finals(sender, instance, **kwargs):
                 #   голая = партия Выигрывает команда 02
                 instance.room.total_team02 = TEAM_TOTAL_MAX
                 instance.room.save()
-
-            pass
-        elif instance.room.previous_eggs:
+        elif instance.room.previous_eggs > 0:
             #   предыдущая игра ЯЙЦА
             if instance.room.owner.game_setting.on_eggs == ON_EGGS_OPEN_FOUR:
                 #   открывается 4 глаза
                 if instance.total_team01 > instance.total_team02:
                     #   открывает команда 01
-                    instance.room.total_team01 += 4
-                    instance.room.previous_eggs = False
+                    instance.room.total_team01 += 4 * instance.room.previous_eggs
+                    instance.room.previous_eggs = 0
                     instance.room.save()
                 elif instance.total_team01 < instance.total_team02:
                     #   открывает команда 02
-                    instance.room.total_team02 += 4
-                    instance.room.previous_eggs = False
+                    instance.room.total_team02 += 4 * instance.room.previous_eggs
+                    instance.room.previous_eggs = 0
                     instance.room.save()
                 else:
-                    #TODO опять ЯЙЦА
-                    pass
+                    # опять ЯЙЦА
+                    instance.room.previous_eggs = instance.room.previous_eggs + 1
+                    instance.room.save()
             elif instance.room.owner.game_setting.on_eggs == ON_EGGS_OPEN_DOUBLE:
                 #   открывается удвоенно
                 if instance.total_team01 > instance.total_team02:
@@ -635,21 +634,21 @@ def deck_finals(sender, instance, **kwargs):
                         # козырь с команды 01
                         if instance.total_team02 < instance.room.owner.game_setting.on_save:
                             #   команда 02 не набрала СПАС
-                            instance.room.total_team01 += 4
+                            instance.room.total_team01 += 4 * instance.room.previous_eggs
                         else:
                             #   команда 02 набрала СПАС
-                            instance.room.total_team01 += 2
-                        instance.room.previous_eggs = False
+                            instance.room.total_team01 += 2 * instance.room.previous_eggs
+                        instance.room.previous_eggs = 0
                         instance.room.save()
                     elif current_trump_team in team02:
                         # козырь с команды 02
                         if instance.total_team02 < instance.room.owner.game_setting.on_save:
                             #   команда 02 не набрала СПАС
-                            instance.room.total_team01 += 6
+                            instance.room.total_team01 += 6 * instance.room.previous_eggs
                         else:
                             #   команда 02 набрала СПАС
-                            instance.room.total_team01 += 4
-                        instance.room.previous_eggs = False
+                            instance.room.total_team01 += 4 * instance.room.previous_eggs
+                        instance.room.previous_eggs = 0
                         instance.room.save()
                 elif instance.total_team01 < instance.total_team02:
                     #   открывает команда 02
@@ -657,26 +656,26 @@ def deck_finals(sender, instance, **kwargs):
                         # козырь с команды 01
                         if instance.total_team01 < instance.room.owner.game_setting.on_save:
                             #   команда 01 не набрала СПАС
-                            instance.room.total_team02 += 6
+                            instance.room.total_team02 += 6 * instance.room.previous_eggs
                         else:
                             #   команда 01 набрала СПАС
-                            instance.room.total_team02 += 4
-                        instance.room.previous_eggs = False
+                            instance.room.total_team02 += 4 * instance.room.previous_eggs
+                        instance.room.previous_eggs = 0
                         instance.room.save()
                     elif current_trump_team in team02:
                         # козырь с команды 02
                         if instance.total_team01 < instance.room.owner.game_setting.on_save:
                             #   команда 01 не набрала СПАС
-                            instance.room.total_team02 += 4
+                            instance.room.total_team02 += 4 * instance.room.previous_eggs
                         else:
                             #   команда 01 набрала СПАС
-                            instance.room.total_team02 += 2
-                        instance.room.previous_eggs = False
+                            instance.room.total_team02 += 2 * instance.room.previous_eggs
+                        instance.room.previous_eggs = 0
                         instance.room.save()
                 else:
-                    #TODO опять ЯЙЦА
-                    pass
-
+                    # опять ЯЙЦА
+                    instance.room.previous_eggs = instance.room.previous_eggs + 1
+                    instance.room.save()
         elif instance.total_team01 < instance.room.owner.game_setting.on_save:
             if current_trump_team in team01:
                 #   если команда 01 не набрала спас и козырь с команды 01
@@ -711,13 +710,12 @@ def deck_finals(sender, instance, **kwargs):
                     instance.room.total_team02 += 2
                     instance.room.save()
             elif instance.total_team01 == instance.total_team02:
-                #   TODO ЯЙЦА
-                instance.room.previous_eggs = True
+                #   ЯЙЦА
+                instance.room.previous_eggs = instance.room.previous_eggs + 1
                 instance.room.save()
                 #   TODO create deck to play eggs
                 pass
         if instance.room.total_team01 >= TEAM_TOTAL_MAX or instance.room.total_team02 >= TEAM_TOTAL_MAX:
-            #   TODO Закончить игру
             #   Обнуление и Ожидание игроков
             instance.room.user01_ready = False
             instance.room.user02_ready = False
