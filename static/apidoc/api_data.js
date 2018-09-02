@@ -1534,8 +1534,8 @@ define({ "api": [
     "url": "",
     "version": "0.0.0",
     "filename": "./static/apidoc/main.js",
-    "group": "_home_msi_dev_projects_belka_v1_static_apidoc_main_js",
-    "groupTitle": "_home_msi_dev_projects_belka_v1_static_apidoc_main_js",
+    "group": "_home_msi_dev_projects_belka_static_apidoc_main_js",
+    "groupTitle": "_home_msi_dev_projects_belka_static_apidoc_main_js",
     "name": ""
   }
 ] });
