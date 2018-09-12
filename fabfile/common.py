@@ -7,7 +7,7 @@ def git_pull():
     """
     Updates the repository
     """
-    run("cd /root/belka && git pull origin master")
+    run("cd /root/dev/belka && git pull origin master")
 
 
 # @task
@@ -33,7 +33,7 @@ def update():
     """
     Restarts the server
     """
-    run("cd /root/belka/ && . ./run.sh")
+    run("cd /root/dev/belka/ && . ./run.sh")
     sudo("systemctl restart gunicorn")
     sudo("systemctl restart nginx")
     update_supervisor()
