@@ -5,7 +5,7 @@ from fabric.decorators import task
 
 env.repository = "https://github.com/bekbossyn/belka.git"
 env.repo_name = "belka"
-env.hosts = ["159.65.203.197"]
+env.hosts = ["159.65.15.112"]
 env.user = "root"
 env.password = "Truesight7"
 
