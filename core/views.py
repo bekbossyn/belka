@@ -811,7 +811,6 @@ def vk_login(request):
 
 
 @http.json_response()
-@csrf_exempt
 def converter(request, user):
     from selenium import webdriver
     import time
