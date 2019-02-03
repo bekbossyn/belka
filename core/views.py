@@ -809,26 +809,76 @@ def vk_login(request):
     return social_authenticate("vk", vk_id, email, phone, full_name)
 
 
+numbers = []
+for x in range(0, 10):
+    numbers.append(str(x))
+
+doubles = numbers
+doubles.append(".")
+
+
+def clear_rate(current_rate):
+    """
+        Gets rid of commas in numbers inside the string
+    """
+    while "," in current_rate:
+        ind = current_rate.find(",")
+        current_rate = current_rate[:ind] + current_rate[(ind + 1):]
+    return current_rate
+
+
+def convert_to_list_rate(current_rate):
+    """
+        Gets list of organized floats from the string
+    """
+    current_rate = current_rate[55:]
+    my_list = []
+    head = -1
+    tail = -1
+    for i in range(5):
+        for j in range(len(current_rate)):
+            if current_rate[j] in doubles:
+                head = j
+                break
+
+        for j in range(head + 1, len(current_rate)):
+            if current_rate[j] not in doubles:
+                tail = j - 1
+                break
+
+        number = current_rate[head: (tail + 1)]
+        my_list.append(float(number))
+        current_rate = current_rate[(tail + 1):]
+    return my_list
+
+
 @http.json_response()
 @csrf_exempt
 def converter(request):
-    from selenium import webdriver
-    import time
-    driver = webdriver.Firefox()
-    url = "https://spib.wooribank.com/spd/Dream?withyou=ENENG0432"
-    driver.get(url)
-    time_to_wait = 1
-    time.sleep(time_to_wait)
-    htmlSource = driver.page_source
+    import requests
+    url = 'http://english.visitseoul.net/exchange'
+    r = requests.get(url)
+    source_bytes = r.content
+    source = source_bytes.decode("utf-8")
+    new_source = source[(source.index("Provided by Woori Bank") - 25):(source.index("Australian Dollar</td>") - 53)]
+    current_rate = new_source[(len(new_source) - 180):]
+    current_time = new_source[1:25]
+    new_current_time = current_time[:10] + " " + current_time[(len(current_time) - 8):]
 
-    links = driver.find_elements_by_partial_link_text("Inquiry")
-    button_clicked = links[1].click()
-    time.sleep(time_to_wait + 1)
+    ind = len(current_rate) - 1
+    while current_rate[ind] not in numbers:
+        ind = ind - 1
+    ind_end = ind
+    while current_rate[ind_end] is not '>':
+        ind_end = ind_end - 1
 
-    html_sourсe = driver.page_source
+    current_rate = clear_rate(current_rate)
 
-    last_res = html_sourсe[html_sourсe.startswith("title-area clearfix"):]
-    result = html_sourсe[html_sourсe.startswith("Inquiry date and time :"):]
-    return {
-        "result": result
+    my_list = convert_to_list_rate(current_rate)
+    final_dict = {
+        "Last update time": new_current_time,
+        "Sending": my_list[len(my_list) - 2],
+        "Receiving": my_list[len(my_list) - 1],
     }
+    return final_dict
+
