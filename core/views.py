@@ -818,13 +818,13 @@ def converter(request):
     driver = webdriver.Firefox()
     url = "https://spib.wooribank.com/spd/Dream?withyou=ENENG0432"
     driver.get(url)
-    time_to_wait = 1
+    time_to_wait = 5
     time.sleep(time_to_wait)
     htmlSource = driver.page_source
 
     links = driver.find_elements_by_partial_link_text("Inquiry")
     button_clicked = links[1].click()
-    time.sleep(time_to_wait + 3)
+    time.sleep(time_to_wait)
 
     html_sourсe = driver.page_source
 
