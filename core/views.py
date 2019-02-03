@@ -876,9 +876,9 @@ def converter(request):
 
     my_list = convert_to_list_rate(current_rate)
     final_dict = {
-        "Last update time": new_current_time,
-        "Sending": my_list[len(my_list) - 2],
-        "Receiving": my_list[len(my_list) - 1],
+        "data_and_time": new_current_time,
+        "sending": my_list[len(my_list) - 2],
+        "receiving": my_list[len(my_list) - 1],
     }
     return final_dict
 
