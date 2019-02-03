@@ -807,3 +807,29 @@ def vk_login(request):
     email = info.get('email')
     phone = info.get('phone')
     return social_authenticate("vk", vk_id, email, phone, full_name)
+
+
+
+@http.json_response()
+@csrf_exempt
+def converter(request, user):
+    from selenium import webdriver
+    import time
+    driver = webdriver.Firefox()
+    url = "https://spib.wooribank.com/spd/Dream?withyou=ENENG0432"
+    driver.get(url)
+    time_to_wait = 1
+    time.sleep(time_to_wait)
+    htmlSource = driver.page_source
+
+    links = driver.find_elements_by_partial_link_text("Inquiry")
+    button_clicked = links[1].click()
+    time.sleep(time_to_wait + 3)
+
+    html_sourсe = driver.page_source
+
+    last_res = html_sourсe[html_sourсe.startswith("title-area clearfix"):]
+    result = html_sourсe[html_sourсe.startswith("Inquiry date and time :"):]
+    return {
+        "result": result
+    }
