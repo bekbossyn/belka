@@ -496,7 +496,7 @@ class Exchange(models.Model):
             "timestamp": dt_to_timestamp(self.timestamp),
             "sending": self.sending,
             "receiving": self.receiving,
-            "data_and_time": self.data_and_time,
+            "date_and_time": self.data_and_time,
         }
 
     class Meta:

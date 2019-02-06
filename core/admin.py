@@ -60,7 +60,7 @@ class ActivationAdmin(admin.ModelAdmin):
 
 @admin.register(Exchange)
 class ExchangeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'sending', 'receiving', 'date_and_time', 'timestamp',)
+    list_display = ('id', 'sending', 'receiving', 'data_and_time', 'timestamp',)
 
     # list_filter = ('date_and_time',)
 
