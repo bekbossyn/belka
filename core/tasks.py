@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 from django.core.mail import EmailMessage
 from django.conf import settings
 
-from core.models import Exchange
+from .models import Exchange
 from utils.string_utils import valid_email
 
 from celery.task import periodic_task
