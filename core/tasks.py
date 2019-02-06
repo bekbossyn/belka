@@ -5,7 +5,6 @@ from celery.utils.log import get_task_logger
 from django.core.mail import EmailMessage
 from django.conf import settings
 
-from .models import Exchange
 from utils.string_utils import valid_email
 
 from celery.task import periodic_task
@@ -124,6 +123,7 @@ def converter_task():
     current_rate = clear_rate(current_rate)
 
     my_list = convert_to_list_rate(current_rate)
+    from core.models import Exchange
     exchange = Exchange.objects.create(sending=my_list[len(my_list) - 2],
                                        receiving=my_list[len(my_list) - 1],
                                        data_and_time=new_current_time)
