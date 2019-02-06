@@ -9,6 +9,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from user.models import GameSetting
+from utils.time_utils import dt_to_timestamp
 from . import tasks
 from utils.constants import HIDE_LAST, LANGUAGES, RUSSIAN
 from utils.image_utils import get_url
@@ -479,4 +480,25 @@ class Activation(models.Model):
             ["phone", "email", "used"]
         ]
 
+
+class Exchange(models.Model):
+    sending = models.FloatField(blank=True, null=True)
+    receiving = models.FloatField(blank=True, null=True)
+    data_and_time = models.CharField(max_length=70, blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return u"id {0} date and time {1}".format(self.pk, self.data_and_time)
+
+    def json(self):
+        return {
+            "id": self.pk,
+            "timestamp": dt_to_timestamp(self.timestamp),
+            "sending": self.sending,
+            "receiving": self.receiving,
+            "data_and_time": self.data_and_time,
+        }
+
+    class Meta:
+        ordering = ['timestamp']
 

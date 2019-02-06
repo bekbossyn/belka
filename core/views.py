@@ -1,4 +1,4 @@
-from .models import Activation
+from .models import Activation, Exchange
 from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -881,4 +881,13 @@ def converter(request):
         "receiving": my_list[len(my_list) - 1],
     }
     return final_dict
+
+
+@http.json_response()
+@csrf_exempt
+def converter_v2(request):
+    exchange = Exchange.objects.order_by('-pk')[0]
+    return {
+        "result": exchange.json(),
+    }
 
