@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import MainUserChangeForm, MainUserCreationForm
-from .models import MainUser, Activation
+from .models import MainUser, Activation, Exchange
 
 
 @admin.register(MainUser)
@@ -57,6 +57,14 @@ class ActivationAdmin(admin.ModelAdmin):
 
     list_filter = ('used',)
 
+
+@admin.register(Exchange)
+class ExchangeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'sending', 'receiving', 'date_and_time', 'timestamp',)
+
+    list_filter = ('date_and_time',)
+
+    ordering = ('-timestamp',)
 
 
 
