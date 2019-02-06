@@ -62,7 +62,7 @@ class ActivationAdmin(admin.ModelAdmin):
 class ExchangeAdmin(admin.ModelAdmin):
     list_display = ('id', 'sending', 'receiving', 'data_and_time', 'timestamp',)
 
-    # list_filter = ('date_and_time',)
+    list_filter = ('data_and_time',)
 
     ordering = ('-timestamp',)
 
