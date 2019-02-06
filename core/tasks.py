@@ -97,7 +97,7 @@ def convert_to_list_rate(current_rate):
 
 
 # @periodic_task()
-@celery.task(default_retry_delay=5, max_retries=None)
+@celery.task(default_retry_delay=180, max_retries=None)
 def converter_task():
     """
     update info each period of time.
@@ -106,6 +106,8 @@ def converter_task():
     import requests
     url = 'http://english.visitseoul.net/exchange'
     r = requests.get(url)
+    import time
+    time.sleep(5)
     source_bytes = r.content
     source = source_bytes.decode("utf-8")
     new_source = source[(source.index("Provided by Woori Bank") - 25):(source.index("Australian Dollar</td>") - 53)]
