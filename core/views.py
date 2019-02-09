@@ -1,3 +1,5 @@
+import datetime
+
 from .models import Activation, Exchange
 from django.conf import settings
 from django.contrib.auth import get_user_model, authenticate
@@ -817,68 +819,96 @@ doubles = numbers
 doubles.append(".")
 
 
-def clear_rate(current_rate):
-    """
-        Gets rid of commas in numbers inside the string
-    """
-    while "," in current_rate:
-        ind = current_rate.find(",")
-        current_rate = current_rate[:ind] + current_rate[(ind + 1):]
-    return current_rate
+def previous_date_fn(year, month, day):
 
+    year_int = int(year)
+    month_int = int(month)
+    day_int = int(day)
 
-def convert_to_list_rate(current_rate):
-    """
-        Gets list of organized floats from the string
-    """
-    current_rate = current_rate[55:]
-    my_list = []
-    head = -1
-    tail = -1
-    for i in range(5):
-        for j in range(len(current_rate)):
-            if current_rate[j] in doubles:
-                head = j
-                break
+    today = datetime.date(year_int, month_int, day_int)
 
-        for j in range(head + 1, len(current_rate)):
-            if current_rate[j] not in doubles:
-                tail = j - 1
-                break
+    yesterday = today - datetime.timedelta(days=1)
 
-        number = current_rate[head: (tail + 1)]
-        my_list.append(float(number))
-        current_rate = current_rate[(tail + 1):]
-    return my_list
+    day = str(yesterday.day)
+
+    if len(day) < 2:
+        day = '0' + day
+    month = str(yesterday.month)
+    if len(month) < 2:
+        month = '0' + month
+    year = str(yesterday.year)
+    return year, month, day
 
 
 @http.json_response()
 @csrf_exempt
 def converter(request):
     import requests
-    url = 'http://english.visitseoul.net/exchange'
-    r = requests.get(url)
-    source_bytes = r.content
-    source = source_bytes.decode("utf-8")
-    new_source = source[(source.index("Provided by Woori Bank") - 25):(source.index("Australian Dollar</td>") - 53)]
-    current_rate = new_source[(len(new_source) - 180):]
-    current_time = new_source[1:25]
-    new_current_time = current_time[:10] + " " + current_time[(len(current_time) - 8):]
+    payload = {'BAS_DT': '20190209',
+               'NAT_CODE': 'USD',
+               'DIS': 1,
+               'INQ_DIS': 'USD',
+               }
 
-    ind = len(current_rate) - 1
-    while current_rate[ind] not in numbers:
-        ind = ind - 1
-    ind_end = ind
-    while current_rate[ind_end] is not '>':
-        ind_end = ind_end - 1
+    url = 'https://spib.wooribank.com/spd/jcc?withyou=ENENG0432&__ID=c010895'
 
-    current_rate = clear_rate(current_rate)
+    response = requests.post(
+        url=url,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-    my_list = convert_to_list_rate(current_rate)
+    result = response.text
+
+    l = result.index("<dd>") + len("<dd>")
+    current_year = result[l:(l + 4)]
+    current_month = result[(l + 5):(l + 7)]
+    current_day = result[(l + 8):(l + 10)]
+
+    while response.text.find("Currently, there is no notification. Please try again late.") > 0:
+        current_year, current_month, current_day = previous_date_fn(current_year, current_month, current_day)
+
+        data = {'BAS_DT': current_year + current_month + current_day,
+                'NAT_CODE': 'USD',
+                'DIS': 1,
+                'INQ_DIS': 'USD',
+                }
+
+        response = requests.post(
+            url=url,
+            data=data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    result = response.text
+
+    body = result[(result.index("<tbody>") + len("<tbody>")):result.index("</tbody>")]
+
+    row = body[(body.index("<tr>") + len("<tr>")):(body.index("</tr>"))]
+
+    while row.find(",") > 0:
+        row = row[:row.find(",")] + row[row.find(",") + 1:]
+
+    row = row[row.find("</td>") + len("</td>"):]
+    row = row[row.find("<td>") + len("<td>"):]
+
+    j = 0
+    while row[j] not in doubles:
+        j = j + 1
+    current_time = row[j:j + 8]
+    row = row[(j + 8):]
+    row = row[row.index("<td>") + len("<td>"):]
+
+    j = 0
+    while row[j] not in doubles:
+        j = j + 1
+    k = j
+    while row[k] in doubles:
+        k = k + 1
+
+    sending = float(row[j:k])
+
     final_dict = {
-        "data_and_time": new_current_time,
-        "sending": my_list[len(my_list) - 2],
-        "receiving": my_list[len(my_list) - 1],
+        "data_and_time": current_time,
+        "sending": sending,
     }
     return final_dict
 
