@@ -907,7 +907,7 @@ def converter(request):
     sending = float(row[j:k])
 
     final_dict = {
-        "data_and_time": current_day + "." + current_month + "." + current_year + " at " + current_time,
+        "data_and_time": current_day + "." + current_month + "." + current_year + " " + current_time,
         "sending": sending,
     }
     return final_dict
