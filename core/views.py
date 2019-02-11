@@ -864,6 +864,17 @@ def converter(request):
     current_month = result[(l + 5):(l + 7)]
     current_day = result[(l + 8):(l + 10)]
 
+    payload = {'BAS_DT': current_year + current_month + current_day,
+               'NAT_CODE': 'USD',
+               'DIS': 1,
+               'INQ_DIS': 'USD',
+               }
+
+    response = requests.post(
+        url=url,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
     while response.text.find("Currently, there is no notification. Please try again late.") > 0:
         current_year, current_month, current_day = previous_date_fn(current_year, current_month, current_day)
 
