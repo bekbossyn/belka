@@ -932,7 +932,7 @@ def converter(request):
     )
 
     last_element = Exchange.objects.last()
-    last_element.date_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
+    last_element.data_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
     last_element.save()
 
     return final_dict
