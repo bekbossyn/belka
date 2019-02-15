@@ -948,6 +948,14 @@ def converter_v2(request):
     five_minutes = datetime.timedelta(minutes=5)
     last_object = Exchange.objects.last()
     last_object_time = last_object.timestamp
+
+    import pytz
+
+    utc = pytz.UTC
+
+    now = utc.localize(now)
+    last_object_time = utc.localize(last_object_time)
+
     if (now - five_minutes) < last_object_time:
         return last_object.json()
     template = Exchange.objects.last()
