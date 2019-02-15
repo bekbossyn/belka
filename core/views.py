@@ -943,9 +943,14 @@ def converter_v2(request):
     from utils.time_utils import dt_to_timestamp
     if dt_to_timestamp((now - five_minutes)) < dt_to_timestamp(last_object_time):
         return last_object.json()
+# Otherwise return the NEW PARSED RESULT
+    new_now = datetime.datetime.now() + datetime.timedelta(hours=9)
+    year = str(new_now.year)
+    month = '{:02d}'.format(new_now.month)
+    day = '{:02d}'.format(new_now.day)
 
     import requests
-    payload = {'BAS_DT': '20190209',
+    payload = {'BAS_DT': year + month + day,
                'NAT_CODE': 'USD',
                'DIS': 1,
                'INQ_DIS': 'USD',
@@ -1017,6 +1022,11 @@ def converter_v2(request):
         k = k + 1
 
     sending = float(row[j:k])
+    last_exchange = Exchange.objects.last()
+    last_exchange.sending = sending
+    last_exchange.data_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
+    last_exchange.timestamp = new_now
+    last_exchange.save()
 
     final_dict = {
         "data_and_time": current_day + "." + current_month + "." + current_year + " " + current_time,
