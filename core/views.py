@@ -953,5 +953,5 @@ def converter_v2(request):
     if dt_to_timestamp((now - five_minutes)) < dt_to_timestamp(last_object_time):
         return last_object.json()
 
-    return converter
+    return converter(request)
 
