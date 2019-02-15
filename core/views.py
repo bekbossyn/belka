@@ -922,6 +922,19 @@ def converter(request):
         "sending": sending,
     }
 
+    current_date_time = datetime.datetime(
+        year=int(current_year),
+        month=int(current_month),
+        day=int(current_day),
+        hour=int(current_time[:2]),
+        minute=int(current_time[3:5]),
+        second=int(current_time[6:]),
+    )
+
+    last_element = Exchange.objects.last()
+    last_element.date_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
+    last_element.save()
+
     return final_dict
 
 
@@ -931,15 +944,11 @@ def converter_v2(request):
 
     template = Exchange.objects.last()
 
-    my_time = template.timestamp
+    from utils.time_utils import dt_to_timestamp
 
-    from datetime import timedelta
-    temp_time = timedelta(hours=9)
-    my_time = my_time + temp_time
+    database_time = dt_to_timestamp(template.timestamp)
 
-    template.timestamp = my_time
-
-    template.save()
+    request_last_time = 1
 
     return template.json()
 

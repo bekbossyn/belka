@@ -21,7 +21,7 @@ def dt_to_timestamp(dt):
 
 def timestamp_to_dt(timestamp):
     """
-    Converts datetime object to unix timestamp
+    Converts unix timestamp object to datetime
     """
     try:
         tz = pytz.timezone(settings.TIME_ZONE)
