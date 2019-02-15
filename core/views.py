@@ -941,7 +941,15 @@ def converter(request):
 @http.json_response()
 @csrf_exempt
 def converter_v2(request):
+    now = datetime.datetime.now()
+    delta = datetime.timedelta(hours=9)
+    now = now + delta
 
+    five_minutes = datetime.timedelta(minutes=5)
+    last_object = Exchange.objects.last()
+    last_object_time = last_object.timestamp
+    if (now - five_minutes) < last_object_time:
+        return last_object.json()
     template = Exchange.objects.last()
 
     from utils.time_utils import dt_to_timestamp
