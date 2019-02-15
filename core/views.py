@@ -930,8 +930,16 @@ def converter(request):
 def converter_v2(request):
 
     template = Exchange.objects.last()
-    template.timestamp = template.timestamp + 9 * 60 * 60
+
+    my_time = template.timestamp
+
+    from datetime import timedelta
+    temp_time = timedelta(hours=9)
+    my_time = my_time + temp_time
+
+    template.timestamp = my_time
+
     template.save()
-    
+
     return template.json()
 
