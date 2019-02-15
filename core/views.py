@@ -921,6 +921,10 @@ def converter(request):
         "data_and_time": current_day + "." + current_month + "." + current_year + " " + current_time,
         "sending": sending,
     }
+
+    template = Exchange.objects.create(sending=123.1, receiving=123.1, data_and_time="sample")
+    template.save()
+
     return final_dict
 
 
