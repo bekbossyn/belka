@@ -922,8 +922,8 @@ def converter(request):
         "sending": sending,
     }
 
-    template = Exchange.objects.create(sending=123.1, receiving=123.1, data_and_time="sample")
-    template.save()
+    # template = Exchange.objects.create(sending=123.1, receiving=123.1, data_and_time="sample")
+    # template.save()
 
     return final_dict
 
