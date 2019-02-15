@@ -922,17 +922,14 @@ def converter(request):
         "sending": sending,
     }
 
-    # template = Exchange.objects.create(sending=123.1, receiving=123.1, data_and_time="sample")
-    # template.save()
-
     return final_dict
 
 
 @http.json_response()
 @csrf_exempt
 def converter_v2(request):
-    exchange = Exchange.objects.order_by('-pk')[0]
-    return {
-        "result": exchange.json(),
-    }
+
+    template = Exchange.objects.last()
+
+    return template.json()
 
