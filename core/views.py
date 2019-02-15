@@ -949,16 +949,9 @@ def converter_v2(request):
     last_object = Exchange.objects.last()
     last_object_time = last_object.timestamp
 
-    from utils import time_utils
-    if time_utils.dt_to_timestamp((now - five_minutes)) < time_utils.dt_to_timestamp(last_object_time):
-        return last_object.json()
-    template = Exchange.objects.last()
-
     from utils.time_utils import dt_to_timestamp
+    if dt_to_timestamp((now - five_minutes)) < dt_to_timestamp(last_object_time):
+        return last_object.json()
 
-    database_time = dt_to_timestamp(template.timestamp)
-
-    request_last_time = 1
-
-    return template.json()
+    return None
 
