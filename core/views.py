@@ -922,25 +922,16 @@ def converter(request):
         "sending": sending,
     }
 
-    current_date_time = datetime.datetime(
-        year=int(current_year),
-        month=int(current_month),
-        day=int(current_day),
-        hour=int(current_time[:2]),
-        minute=int(current_time[3:5]),
-        second=int(current_time[6:]),
-    )
-
-    last_element = Exchange.objects.last()
-    last_element.data_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
-    last_element.save()
-
     return final_dict
 
 
 @http.json_response()
 @csrf_exempt
 def converter_v2(request):
+    """
+        return result of exchanges
+        but not parsing at every call
+    """
     now = datetime.datetime.now()
     delta = datetime.timedelta(hours=9)
     now = now + delta
@@ -953,5 +944,83 @@ def converter_v2(request):
     if dt_to_timestamp((now - five_minutes)) < dt_to_timestamp(last_object_time):
         return last_object.json()
 
-    return converter(request)
+    import requests
+    payload = {'BAS_DT': '20190209',
+               'NAT_CODE': 'USD',
+               'DIS': 1,
+               'INQ_DIS': 'USD',
+               }
 
+    url = 'https://spib.wooribank.com/spd/jcc?withyou=ENENG0432&__ID=c010895'
+
+    response = requests.post(
+        url=url,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    result = response.text
+
+    l = result.index("<dd>") + len("<dd>")
+    current_year = result[l:(l + 4)]
+    current_month = result[(l + 5):(l + 7)]
+    current_day = result[(l + 8):(l + 10)]
+
+    payload = {'BAS_DT': current_year + current_month + current_day,
+               'NAT_CODE': 'USD',
+               'DIS': 1,
+               'INQ_DIS': 'USD',
+               }
+
+    response = requests.post(
+        url=url,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    while response.text.find("Currently, there is no notification. Please try again late.") > 0:
+        current_year, current_month, current_day = previous_date_fn(current_year, current_month, current_day)
+
+        data = {'BAS_DT': current_year + current_month + current_day,
+                'NAT_CODE': 'USD',
+                'DIS': 1,
+                'INQ_DIS': 'USD',
+                }
+
+        response = requests.post(
+            url=url,
+            data=data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    result = response.text
+
+    body = result[(result.index("<tbody>") + len("<tbody>")):result.index("</tbody>")]
+
+    row = body[(body.index("<tr>") + len("<tr>")):(body.index("</tr>"))]
+
+    while row.find(",") > 0:
+        row = row[:row.find(",")] + row[row.find(",") + 1:]
+
+    row = row[row.find("</td>") + len("</td>"):]
+    row = row[row.find("<td>") + len("<td>"):]
+
+    j = 0
+    while row[j] not in doubles:
+        j = j + 1
+    current_time = row[j:j + 8]
+    row = row[(j + 8):]
+    row = row[row.index("<td>") + len("<td>"):]
+
+    j = 0
+    while row[j] not in doubles:
+        j = j + 1
+    k = j
+    while row[k] in doubles:
+        k = k + 1
+
+    sending = float(row[j:k])
+
+    final_dict = {
+        "data_and_time": current_day + "." + current_month + "." + current_year + " " + current_time,
+        "sending": sending,
+    }
+
+    return final_dict
