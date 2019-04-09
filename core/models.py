@@ -495,7 +495,7 @@ class Exchange(models.Model):
             "id": self.pk,
             "timestamp": dt_to_timestamp(self.timestamp),
             "sending": self.sending,
-            "receiving": self.receiving,
+            "receiving": self.receiving,    # Halyk bank course
             "data_and_time": self.data_and_time,
         }
 
