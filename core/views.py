@@ -1062,6 +1062,7 @@ def converter_v2(request):
     final_dict = {
         "data_and_time": current_day + "." + current_month + "." + current_year + " " + current_time,
         "sending": sending,
+        "receiving": receiving,
     }
 
     return final_dict
