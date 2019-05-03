@@ -63,6 +63,7 @@ doubles.append(".")
 kazakh_doubles = numbers
 kazakh_doubles.append(",")
 
+
 def clear_rate(current_rate):
     """
         Gets rid of commas in numbers inside the string
@@ -98,8 +99,8 @@ def convert_to_list_rate(current_rate):
     return my_list
 
 
-# @periodic_task()
-@celery.task(default_retry_delay=180, max_retries=None)
+@periodic_task()
+# @celery.task(default_retry_delay=180, max_retries=None)
 def converter_task():
     """
     update info each period of time.
