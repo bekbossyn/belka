@@ -60,6 +60,8 @@ for x in range(0, 10):
 doubles = numbers
 doubles.append(".")
 
+kazakh_doubles = numbers
+kazakh_doubles.append(",")
 
 def clear_rate(current_rate):
     """
@@ -103,36 +105,130 @@ def converter_task():
     update info each period of time.
     converter task
     """
-    import requests
-    url = 'http://english.visitseoul.net/exchange'
-    r = requests.get(url)
-    import time
-    time.sleep(5)
-    source_bytes = r.content
-    source = source_bytes.decode("utf-8")
-    new_source = source[(source.index("Provided by Woori Bank") - 25):(source.index("Australian Dollar</td>") - 53)]
-    current_rate = new_source[(len(new_source) - 180):]
-    current_time = new_source[1:25]
-    new_current_time = current_time[:10] + " " + current_time[(len(current_time) - 8):]
-
-    ind = len(current_rate) - 1
-    while current_rate[ind] not in numbers:
-        ind = ind - 1
-    ind_end = ind
-    while current_rate[ind_end] is not '>':
-        ind_end = ind_end - 1
-
-    current_rate = clear_rate(current_rate)
-
-    my_list = convert_to_list_rate(current_rate)
+    import datetime
     from core.models import Exchange
-    exchange = Exchange.objects.create(sending=my_list[len(my_list) - 2],
-                                       receiving=my_list[len(my_list) - 1],
-                                       data_and_time=new_current_time)
-    # final_dict = {
-    #     "data_and_time": new_current_time,
-    #     "sending": my_list[len(my_list) - 2],
-    #     "receiving": my_list[len(my_list) - 1],
-    # }
-    # return final_dict
+
+    now = datetime.datetime.now()
+    delta = datetime.timedelta(hours=9)
+    now = now + delta
+
+    five_minutes = datetime.timedelta(minutes=5)
+    last_object = Exchange.objects.last()
+    last_object_time = last_object.timestamp
+
+    from utils.time_utils import dt_to_timestamp
+    if dt_to_timestamp((now - five_minutes)) < dt_to_timestamp(last_object_time):
+        return last_object.json()
+    # Otherwise return the NEW PARSED RESULT
+    new_now = datetime.datetime.now() + datetime.timedelta(hours=9)
+    year = str(new_now.year)
+    month = '{:02d}'.format(new_now.month)
+    day = '{:02d}'.format(new_now.day)
+
+    import requests
+    payload = {'BAS_DT': year + month + day,
+               'NAT_CODE': 'USD',
+               'DIS': 1,
+               'INQ_DIS': 'USD',
+               }
+
+    url = 'https://spib.wooribank.com/spd/jcc?withyou=ENENG0432&__ID=c010895'
+
+    response = requests.post(
+        url=url,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    result = response.text
+
+    l = result.index("<dd>") + len("<dd>")
+    current_year = result[l:(l + 4)]
+    current_month = result[(l + 5):(l + 7)]
+    current_day = result[(l + 8):(l + 10)]
+
+    payload = {'BAS_DT': current_year + current_month + current_day,
+               'NAT_CODE': 'USD',
+               'DIS': 1,
+               'INQ_DIS': 'USD',
+               }
+
+    response = requests.post(
+        url=url,
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    while response.text.find("Currently, there is no notification. Please try again late.") > 0:
+        current_year, current_month, current_day = previous_date_fn(current_year, current_month, current_day)
+
+        data = {'BAS_DT': current_year + current_month + current_day,
+                'NAT_CODE': 'USD',
+                'DIS': 1,
+                'INQ_DIS': 'USD',
+                }
+
+        response = requests.post(
+            url=url,
+            data=data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    result = response.text
+
+    body = result[(result.index("<tbody>") + len("<tbody>")):result.index("</tbody>")]
+
+    row = body[(body.index("<tr>") + len("<tr>")):(body.index("</tr>"))]
+
+    while row.find(",") > 0:
+        row = row[:row.find(",")] + row[row.find(",") + 1:]
+
+    row = row[row.find("</td>") + len("</td>"):]
+    row = row[row.find("<td>") + len("<td>"):]
+
+    j = 0
+    while row[j] not in doubles:
+        j = j + 1
+    current_time = row[j:j + 8]
+    row = row[(j + 8):]
+    row = row[row.index("<td>") + len("<td>"):]
+
+    j = 0
+    while row[j] not in doubles:
+        j = j + 1
+    k = j
+    while row[k] in doubles:
+        k = k + 1
+
+    #############################################################################################
+    url = "https://ifin.kz/bank/halykbank/currency-rate/astana"
+    response = requests.get(
+        url=url,
+        params=None,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    result = response.text
+
+    body = result[(result.index("tbl-td rate-value")):(result.index("tbl-td rate-value") + 200)]
+    body = body[body.index(">"):]
+
+    kj = 0
+    while body[kj] not in kazakh_doubles:
+        kj = kj + 1
+    kk = kj
+    while body[kk] in kazakh_doubles:
+        kk = kk + 1
+    body_copy = body
+    for iii in range(kj, kk):
+        if body_copy[iii] == ',':
+            body_copy[iii] = "."
+
+    receiving = float(body[kj:kk])
+
+    #############################################################################################
+
+    sending = float(row[j:k])
+    last_exchange = Exchange.objects.last()
+    last_exchange.sending = sending
+    last_exchange.receiving = receiving
+    last_exchange.data_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
+    last_exchange.timestamp = new_now
+    last_exchange.save()
 
