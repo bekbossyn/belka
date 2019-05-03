@@ -100,7 +100,7 @@ def convert_to_list_rate(current_rate):
     return my_list
 
 
-@periodic_task(run_every=(crontab(minute=30, hour='*')))
+@periodic_task(run_every=(crontab(minute=1)))
 # @celery.task(default_retry_delay=180, max_retries=None)
 def converter_task():
     """
