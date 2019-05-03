@@ -1,6 +1,7 @@
 import celery
 import threading
 
+from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 from django.core.mail import EmailMessage
 from django.conf import settings
@@ -99,7 +100,7 @@ def convert_to_list_rate(current_rate):
     return my_list
 
 
-@periodic_task()
+@periodic_task(run_every=(crontab(minute=30, hour='*')))
 # @celery.task(default_retry_delay=180, max_retries=None)
 def converter_task():
     """
