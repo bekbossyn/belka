@@ -100,6 +100,28 @@ def convert_to_list_rate(current_rate):
     return my_list
 
 
+def previous_date_fn(year, month, day):
+
+    year_int = int(year)
+    month_int = int(month)
+    day_int = int(day)
+
+    import datetime
+    today = datetime.date(year_int, month_int, day_int)
+
+    yesterday = today - datetime.timedelta(days=1)
+
+    day = str(yesterday.day)
+
+    if len(day) < 2:
+        day = '0' + day
+    month = str(yesterday.month)
+    if len(month) < 2:
+        month = '0' + month
+    year = str(yesterday.year)
+    return year, month, day
+
+
 @periodic_task(run_every=(crontab(minute=1)))
 # @celery.task(default_retry_delay=180, max_retries=None)
 def converter_task():
