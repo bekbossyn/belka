@@ -1173,7 +1173,7 @@ def converter_v2(request):
 
     result = response.text
 
-    body = result[(result.index("tbl-td rate-value")):(result.index("tbl-td rate-value") + 200)]
+    body = result[(result.index("tbl-td rate-value")):(result.index("tbl-td rate-value") + 500)]
     body = body[body.index(">"):]
 
     kj = 0
