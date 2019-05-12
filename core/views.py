@@ -1177,10 +1177,10 @@ def converter_v2(request):
     body = body[body.index(">"):]
 
     kj = 0
-    while body[kj] not in kazakh_doubles:
+    while kj < len(body) and body[kj] not in kazakh_doubles:
         kj = kj + 1
     kk = kj
-    while body[kk] in kazakh_doubles:
+    while kk < len(body) and body[kk] in kazakh_doubles:
         kk = kk + 1
     body_copy = body
     for iii in range(kj, kk):
