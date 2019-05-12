@@ -820,6 +820,7 @@ doubles.append(".")
 
 kazakh_doubles = numbers
 kazakh_doubles.append(",")
+kazakh_doubles.append(".")
 
 
 def previous_date_fn(year, month, day):
@@ -1163,32 +1164,32 @@ def converter_v2(request):
     while row[k] in doubles:
         k = k + 1
 
-    #############################################################################################
-    # url = "https://ifin.kz/bank/halykbank/currency-rate/astana"
-    # response = requests.get(
-    #     url=url,
-    #     params=None,
-    #     headers={'Content-Type': 'application/x-www-form-urlencoded'})
-    #
-    # result = response.text
-    #
-    # body = result[(result.index("tbl-td rate-value")):(result.index("tbl-td rate-value") + 200)]
-    # body = body[body.index(">"):]
-    #
-    # kj = 0
-    # while body[kj] not in kazakh_doubles:
-    #     kj = kj + 1
-    # kk = kj
-    # while body[kk] in kazakh_doubles:
-    #     kk = kk + 1
-    # body_copy = body
-    # for iii in range(kj, kk):
-    #     if body_copy[iii] == ',':
-    #         body_copy[iii] = "."
-    #
-    # receiving = float(body[kj:kk])
+    ############################################################################################
+    url = "https://ifin.kz/bank/halykbank/currency-rate/astana"
+    response = requests.get(
+        url=url,
+        params=None,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-    #############################################################################################
+    result = response.text
+
+    body = result[(result.index("tbl-td rate-value")):(result.index("tbl-td rate-value") + 200)]
+    body = body[body.index(">"):]
+
+    kj = 0
+    while body[kj] not in kazakh_doubles:
+        kj = kj + 1
+    kk = kj
+    while body[kk] in kazakh_doubles:
+        kk = kk + 1
+    body_copy = body
+    for iii in range(kj, kk):
+        if body_copy[iii] == ',':
+            body_copy[iii] = "."
+
+    receiving = float(body[kj:kk])
+
+    ############################################################################################
 
     sending = float(row[j:k])
     last_exchange = Exchange.objects.last()
@@ -1201,7 +1202,7 @@ def converter_v2(request):
     final_dict = {
         "data_and_time": current_day + "." + current_month + "." + current_year + " " + current_time,
         "sending": sending,
-        # "receiving": receiving,
+        "receiving": receiving,
     }
 
     return final_dict
