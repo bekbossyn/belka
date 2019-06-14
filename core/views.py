@@ -1197,6 +1197,7 @@ def converter_v2(request):
     # last_exchange.receiving = receiving
     last_exchange.data_and_time = current_day + "." + current_month + "." + current_year + " " + current_time
     last_exchange.timestamp = new_now
+    last_exchange.receiving = receiving
     last_exchange.save()
 
     final_dict = {
