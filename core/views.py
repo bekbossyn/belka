@@ -1206,4 +1206,5 @@ def converter_v2(request):
         "receiving": receiving,
     }
 
-    return final_dict
+    # return final_dict
+    return last_exchange.json()
